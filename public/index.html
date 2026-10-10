@@ -11,11 +11,13 @@
         .btn-mute:hover { background: #C03B3E; }
         .btn-screen { background: #3ba55d; }
         .btn-screen:hover { background: #2e854b; }
+        .btn-camera { background: #9b59b6; }
+        .btn-camera:hover { background: #8e44ad; }
         #status { margin-top: 20px; color: #b9bbbe; font-weight: bold; }
         .controls { margin-top: 20px; display: none; }
         
-        .main-container { display: flex; max-width: 900px; margin: 20px auto; gap: 20px; justify-content: center; flex-wrap: wrap; }
-        .online-box { background: #202225; border-radius: 8px; padding: 15px; width: 220px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); height: 350px; display: flex; flex-direction: column; }
+        .main-container { display: flex; max-width: 950px; margin: 20px auto; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .online-box { background: #202225; border-radius: 8px; padding: 15px; width: 200px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); height: 350px; display: flex; flex-direction: column; }
         .online-title { font-size: 14px; text-transform: uppercase; color: #8e9297; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #2f3136; padding-bottom: 5px; }
         .user-list-container { flex-grow: 1; overflow-y: auto; }
         
@@ -25,12 +27,11 @@
         .user-item.speaking .user-avatar { background: #3ba55d; border-color: #3ba55d; box-shadow: 0 0 8px #3ba55d; }
         .user-item.speaking { color: #fff; font-weight: bold; }
         
-        /* Стили для ролей администратора */
         .user-item.admin-role { color: #ED4245 !important; font-weight: bold; }
         .user-item.admin-role .user-avatar { background: #ED4245 !important; }
         .crown { color: #FAA61A; margin-left: 5px; font-size: 13px; }
 
-        .chat-box { background: #202225; border-radius: 8px; padding: 15px; width: 380px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); height: 350px; display: flex; flex-direction: column; text-align: left; }
+        .chat-box { background: #202225; border-radius: 8px; padding: 15px; width: 340px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); height: 350px; display: flex; flex-direction: column; text-align: left; }
         .chat-messages { flex-grow: 1; overflow-y: auto; background: #2f3136; border-radius: 4px; padding: 10px; margin-bottom: 10px; color: #dcddde; font-size: 14px; }
         .chat-input-container { display: flex; gap: 10px; }
         .chat-input { flex-grow: 1; background: #40444b; border: none; border-radius: 4px; padding: 10px; color: #fff; font-size: 14px; outline: none; }
@@ -39,14 +40,16 @@
         .msg-author { font-weight: bold; color: #ffffff; margin-right: 5px; }
         .msg-author.admin-text { color: #ED4245 !important; }
         
-        .video-box { background: #202225; border-radius: 8px; padding: 15px; width: 100%; max-width: 640px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; margin-top: 10px; }
-        video { width: 100%; border-radius: 4px; background: #000; }
+        /* Сетка видеоконференции (веб-камеры и стримы экранов) */
+        .video-box { background: #202225; border-radius: 8px; padding: 15px; width: 100%; max-width: 900px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; margin-top: 10px; }
+        .video-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 10px; }
+        .video-wrapper { background: #000; border-radius: 6px; overflow: hidden; position: relative; width: 280px; height: 210px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        .video-wrapper video { width: 100%; height: 100%; object-fit: cover; }
+        .video-label { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: #fff; }
         
-        /* Окно авторизации с двумя полями */
         .login-box { background: #202225; border-radius: 8px; padding: 25px; max-width: 400px; margin: 30px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; }
         .login-input { background: #40444b; border: none; border-radius: 4px; padding: 12px; color: #fff; font-size: 16px; outline: none; width: 85%; text-align: center; margin-bottom: 15px; }
         
-        /* Высплывающее контекстное меню админа */
         .admin-menu { position: absolute; background: #18191c; border-radius: 4px; padding: 6px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: none; z-index: 9999; }
         .admin-menu-item { padding: 8px 20px; color: #ED4245; font-weight: bold; font-size: 14px; cursor: pointer; list-style: none; }
         .admin-menu-item:hover { background: #ED4245; color: white; }
@@ -62,12 +65,10 @@
         <h1 style="margin: 0; font-size: 32px;">🎙 OutlastPhone</h1>
     </div>
 
-    <!-- Всплывающее меню модерации -->
     <div class="admin-menu" id="ctx-menu">
         <li class="admin-menu-item" id="kick-action">🥾 Выгнать из канала</li>
     </div>
 
-    <!-- Обновленный блок входа с паролем -->
     <div class="login-box" id="login-container">
         <h3 style="margin-top:0;">Вход в систему</h3>
         <input type="text" class="login-input" id="username-input" placeholder="Введите ваше имя..." maxlength="15" autocomplete="off">
@@ -91,15 +92,17 @@
             </div>
         </div>
 
+        <!-- Контейнер для медиапотоков видеоконференции -->
         <div class="video-box" id="video-container">
-            <div class="online-title" id="video-title">📺 Демонстрация экрана</div>
-            <video id="screen-video" autoplay playsinline></video>
+            <div class="online-title">📺 Видеоконференция и трансляции</div>
+            <div class="video-grid" id="video-grid"></div>
         </div>
     </div>
     
     <div class="controls" id="controls-block">
         <button class="btn btn-mute" id="mute-btn">🔇 Выключить микрофон</button>
         <button class="btn btn-screen" id="screen-btn">📺 Включить экран</button>
+        <button class="btn btn-camera" id="camera-btn">📷 Включить камеру</button>
     </div>
 
     <div id="status">Статус: Инициализация связи...</div>
@@ -110,6 +113,7 @@
         const statusDiv = document.getElementById('status');
         const muteBtn = document.getElementById('mute-btn');
         const screenBtn = document.getElementById('screen-btn');
+        const cameraBtn = document.getElementById('camera-btn');
         const controlsBlock = document.getElementById('controls-block');
         const userCountSpan = document.getElementById('user-count');
         const userListDiv = document.getElementById('user-list');
@@ -119,8 +123,7 @@
         const chatSendBtn = document.getElementById('chat-send-btn');
         
         const videoContainer = document.getElementById('video-container');
-        const screenVideo = document.getElementById('screen-video');
-        const videoTitle = document.getElementById('video-title');
+        const videoGrid = document.getElementById('video-grid');
 
         const loginContainer = document.getElementById('login-container');
         const appContainer = document.getElementById('app-container');
@@ -131,8 +134,10 @@
         
         let localStream;
         let screenStream;
+        let cameraStream;
         let isMuted = false;
         let isSharingScreen = false;
+        let isSharingCamera = false;
         let myUserId = null;
         let myUsername = "";
         let amIAdmin = false;
@@ -172,7 +177,9 @@
 
                 muteBtn.addEventListener('click', () => {
                     isMuted = !isMuted;
-                    localStream.getAudioTracks().enabled = !isMuted; 
+                    localStream.getAudioTracks().forEach(track => {
+                        track.enabled = !isMuted;
+                    });
                     muteBtn.innerText = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
                     muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
                     if (isMuted) {
@@ -182,33 +189,52 @@
 
                 screenBtn.addEventListener('click', () => {
                     if (!isSharingScreen) {
+                        if (isSharingCamera) stopCameraShare();
+                        
                         navigator.mediaDevices.getDisplayMedia({ video: true }).then(stream => {
                             screenStream = stream;
                             isSharingScreen = true;
                             screenBtn.innerText = "🛑 Выключить экран";
                             screenBtn.style.background = "#ED4245";
                             
-                            videoContainer.style.display = 'block';
-                            screenVideo.srcObject = screenStream;
-                            videoTitle.innerText = "📺 Ваша демонстрация экрана";
+                            addVideoElement(myUserId + "-screen", screenStream, "Ваш экран");
 
-                            socket.emit('start-screen-share', ROOM_ID, myUserId, myUsername);
+                            socket.emit('start-video-stream', ROOM_ID, myUserId, myUsername, "screen");
 
-                            screenStream.getVideoTracks().addEventListener('ended', () => {
+                            screenStream.getVideoTracks()[0].addEventListener('ended', () => {
                                 stopScreenShare();
                             });
-                        }).catch(err => console.log("Стрим экрана отменен"));
+                        }).catch(err => console.log(err));
                     } else {
                         stopScreenShare();
+                    }
+                });
+
+                cameraBtn.addEventListener('click', () => {
+                    if (!isSharingCamera) {
+                        if (isSharingScreen) stopScreenShare();
+                        
+                        navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
+                            cameraStream = stream;
+                            isSharingCamera = true;
+                            cameraBtn.innerText = "🛑 Выключить камеру";
+                            cameraBtn.style.background = "#ED4245";
+                            
+                            addVideoElement(myUserId + "-camera", cameraStream, "Вы (Камера)");
+
+                            socket.emit('start-video-stream', ROOM_ID, myUserId, myUsername, "camera");
+                        }).catch(err => alert("Веб-камера не найдена или доступ запрещен"));
+                    } else {
+                        stopCameraShare();
                     }
                 });
 
                 myPeer.on('call', call => {
                     call.answer(localStream); 
                     call.on('stream', userStream => {
+                        const callId = call.connectionId;
                         if (userStream.getVideoTracks().length > 0) {
-                            videoContainer.style.display = 'block';
-                            screenVideo.srcObject = userStream;
+                            addVideoElement(callId, userStream, "Стрим");
                         } else {
                             const audio = document.createElement('audio');
                             addAudioStream(audio, userStream);
@@ -220,18 +246,16 @@
                     myPeer.call(newUserId, localStream);
                 });
                 
-                socket.on('screen-shared-by-user', (userId, username) => {
-                    videoTitle.innerText = "📺 Экран транслирует: " + username;
+                socket.on('video-stream-started', (userId, username, streamType) => {
+                    const labelText = streamType === "screen" ? "Экран: " + username : "Камера: " + username;
                     const call = myPeer.call(userId, localStream);
                     call.on('stream', remoteVideoStream => {
-                        videoContainer.style.display = 'block';
-                        screenVideo.srcObject = remoteVideoStream;
+                        addVideoElement(userId + "-" + streamType, remoteVideoStream, labelText);
                     });
                 });
 
-                socket.on('screen-share-stopped-by-user', () => {
-                    videoContainer.style.display = 'none';
-                    screenVideo.srcObject = null;
+                socket.on('video-stream-stopped', (userId, streamType) => {
+                    removeVideoElement(userId + "-" + streamType);
                 });
 
             }).catch(err => {
@@ -248,6 +272,55 @@
             alert("Вы были кикнуты администратором из этого канала!");
             location.reload();
         });
+
+        function addVideoElement(id, stream, labelText) {
+            videoContainer.style.display = 'block';
+            let wrapper = document.getElementById(id);
+            if (!wrapper) {
+                wrapper = document.createElement('div');
+                wrapper.className = 'video-wrapper';
+                wrapper.id = id;
+                
+                const video = document.createElement('video');
+                video.autoplay = true;
+                video.playsinline = true;
+                video.srcObject = stream;
+                
+                const label = document.createElement('div');
+                label.className = 'video-label';
+                label.innerText = labelText;
+                
+                wrapper.appendChild(video);
+                wrapper.appendChild(label);
+                videoGrid.appendChild(wrapper);
+            }
+        }
+
+        function removeVideoElement(id) {
+            const wrapper = document.getElementById(id);
+            if (wrapper) wrapper.remove();
+            if (videoGrid.children.length === 0) {
+                videoContainer.style.display = 'none';
+            }
+        }
+
+        function stopScreenShare() {
+            if (screenStream) screenStream.getTracks().forEach(track => track.stop());
+            isSharingScreen = false;
+            screenBtn.innerText = "📺 Включить экран";
+            screenBtn.style.background = "#3ba55d";
+            removeVideoElement(myUserId + "-screen");
+            socket.emit('stop-video-stream', ROOM_ID, "screen");
+        }
+
+        function stopCameraShare() {
+            if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
+            isSharingCamera = false;
+            cameraBtn.innerText = "📷 Включить камеру";
+            cameraBtn.style.background = "#9b59b6";
+            removeVideoElement(myUserId + "-camera");
+            socket.emit('stop-video-stream', ROOM_ID, "camera");
+        }
 
         function startAudioAnalyser(stream) {
             try {
@@ -273,16 +346,6 @@
                     }
                 }, 150);
             } catch (e) { console.log(e); }
-        }
-
-        function stopScreenShare() {
-            if (screenStream) screenStream.getTracks().forEach(track => track.stop());
-            isSharingScreen = false;
-            screenBtn.innerText = "📺 Включить экран";
-            screenBtn.style.background = "#3ba55d";
-            videoContainer.style.display = 'none';
-            screenVideo.srcObject = null;
-            socket.emit('stop-screen-share', ROOM_ID);
         }
 
         function sendMessage() {
@@ -313,8 +376,6 @@
                     else item.classList.remove('speaking');
                 }
             });
-        });
-
         socket.on('update-user-list', (users, adminName) => {
             userCountSpan.innerText = users.length;
             userListDiv.innerHTML = ''; 
@@ -333,7 +394,6 @@
                 item.addEventListener('contextmenu', (e) => {
                     e.preventDefault();
                     if (!amIAdmin || user === adminName) return;
-                    
                     selectedUserToKick = user;
                     ctxMenu.style.display = 'block';
                     ctxMenu.style.left = e.pageX + 'px';
