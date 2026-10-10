@@ -31,16 +31,16 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('update-user-list', roomUsers[roomId]);
     });
 
+    // Принимаем текстовое сообщение от клиента и транслируем его всем в комнате
+    socket.on('send-chat-message', (roomId, author, text) => {
+        io.to(roomId).emit('receive-chat-message', author, text);
+    });
+
     socket.on('disconnect', () => {
         if (currentRoom && currentUsername && roomUsers[currentRoom]) {
             roomUsers[currentRoom] = roomUsers[currentRoom].filter(user => user !== currentUsername);
             io.to(currentRoom).emit('update-user-list', roomUsers[currentRoom]);
         }
-    });
-
-    socket.on('request-user-list', (roomId) => {
-        const list = roomUsers[roomId] || [];
-        socket.emit('update-user-list', list);
     });
 });
 
