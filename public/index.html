@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Наш Голосовой Чат</title>
+    <style>
+        body { font-family: sans-serif; background: #2f3136; color: #fff; padding: 20px; text-align: center; }
+        .btn { background: #5865F2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 20px; }
+        .btn:hover { background: #4752C4; }
+        #status { margin-top: 20px; color: #b9bbbe; font-weight: bold; }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Подключаем самую стабильную внешнюю библиотеку PeerJS -->
+    <script src="https://unpkg.com"></script>
+</head>
+<body>
+
+    <h1>🎙 Наш мини-Discord</h1>
+    <button class="btn" id="join-btn">Подключиться к голосу</button>
+    <div id="status">Статус: Инициализация связи...</div>
+
+    <script>
+        const socket = io('/');
+        const ROOM_ID = "main-friends-room"; 
+        const statusDiv = document.getElementById('status');
+        
+        // Создаем подключение к бесплатному облаку PeerJS
+        const myPeer = new Peer();
+
+        myPeer.on('open', userId => {
+            statusDiv.innerText = "Статус: Готов к общению! Нажмите кнопку.";
+            
+            document.getElementById('join-btn').addEventListener('click', () => {
+                navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                    statusDiv.innerText = "Вы подключены! Ждем друзей...";
+                    socket.emit('join-room', ROOM_ID, userId);
+
+                    myPeer.on('call', call => {
+                        call.answer(stream);
+                        const audio = document.createElement('audio');
+                        call.on('stream', userAudioStream => {
+                            addAudioStream(audio, userAudioStream);
+                        });
+                    });
+
+                    socket.on('user-connected', newUserId => {
+                        const call = myPeer.call(newUserId, stream);
+                        const audio = document.createElement('audio');
+                        call.on('stream', userAudioStream => {
+                            addAudioStream(audio, userAudioStream);
+                        });
+                    });
+                }).catch(err => {
+                    statusDiv.innerText = "Ошибка микрофона: " + err.message;
+                });
+            });
+        });
+
+        function addAudioStream(audio, stream) {
+            audio.srcObject = stream;
+            audio.addEventListener('loadedmetadata', () => {
+                audio.play();
+            });
+            document.body.append(audio);
+        }
+    </script>
+</body>
+</html>
