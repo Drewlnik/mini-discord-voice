@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Голосовой Чат</title>
+    <title>Наш Голосовой Чат</title>
     <style>
         body { font-family: sans-serif; background: #2f3136; color: #fff; padding: 20px; text-align: center; }
         .btn { background: #5865F2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px; font-weight: bold; }
@@ -12,7 +12,6 @@
         #status { margin-top: 20px; color: #b9bbbe; font-weight: bold; }
         .controls { margin-top: 20px; display: none; }
         
-        /* Сетка для интерфейса */
         .main-container { display: flex; max-width: 800px; margin: 20px auto; gap: 20px; justify-content: center; }
         .online-box { background: #202225; border-radius: 8px; padding: 15px; width: 250px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); height: 350px; display: flex; flex-direction: column; }
         .online-title { font-size: 14px; text-transform: uppercase; color: #8e9297; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #2f3136; padding-bottom: 5px; }
@@ -20,7 +19,6 @@
         .user-item { display: flex; align-items: center; margin: 8px 0; color: #dcddde; font-size: 15px; }
         .user-avatar { width: 10px; height: 10px; background: #3ba55d; border-radius: 50%; margin-right: 10px; }
 
-        /* Стили для Текстового Чата */
         .chat-box { background: #202225; border-radius: 8px; padding: 15px; width: 450px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); height: 350px; display: flex; flex-direction: column; text-align: left; }
         .chat-messages { flex-grow: 1; overflow-y: auto; background: #2f3136; border-radius: 4px; padding: 10px; margin-bottom: 10px; color: #dcddde; font-size: 14px; }
         .chat-input-container { display: flex; gap: 10px; }
@@ -30,8 +28,7 @@
         .msg-line { margin-bottom: 8px; word-break: break-all; }
         .msg-author { font-weight: bold; color: #ffffff; margin-right: 5px; }
 
-        /* Блок авторизации (Ввод никнейма) */
-        .login-box { background: #202225; border-radius: 8px; padding: 20px; max-width: 400px; margin: 30px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .login-box { background: #202225; border-radius: 8px; padding: 20px; max-width: 400px; margin: 30px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; }
         .login-input { background: #40444b; border: none; border-radius: 4px; padding: 12px; color: #fff; font-size: 16px; outline: none; width: 80%; text-align: center; margin-bottom: 15px; }
     </style>
     <script src="/socket.io/socket.io.js"></script>
@@ -45,7 +42,7 @@
         <h1 style="margin: 0; font-size: 32px;">🎙 OutlastPhone</h1>
     </div>
 
-    <!-- Блок ввода имени перед входом -->
+    <!-- Блок ввода имени -->
     <div class="login-box" id="login-container">
         <h3>Введите ваше имя:</h3>
         <input type="text" class="login-input" id="username-input" placeholder="Ваш никнейм..." maxlength="15" autocomplete="off">
@@ -53,15 +50,13 @@
         <button class="btn" id="join-btn">Войти в канал</button>
     </div>
     
-    <!-- Главный контейнер Дискорда (изначально скрыт, пока не введём имя) -->
+    <!-- Главный контейнер Дискорда -->
     <div class="main-container" id="app-container" style="display: none;">
-        <!-- Левая панель: Участники -->
         <div class="online-box">
             <div class="online-title">🟢 В сети: <span id="user-count">0</span></div>
             <div class="user-list-container" id="user-list"></div>
         </div>
 
-        <!-- Правая панель: Текстовый чат -->
         <div class="chat-box">
             <div class="online-title">💬 Текстовый чат</div>
             <div class="chat-messages" id="chat-messages"></div>
@@ -104,31 +99,27 @@
 
         myPeer.on('open', userId => {
             myUserId = userId;
-            statusDiv.innerText = "Статус: Подключено к сети! Введите имя и входите.";
+            statusDiv.innerText = "Статус: Подключено к сети! Введите никнейм.";
+            loginContainer.style.display = 'block';
         });
 
         document.getElementById('join-btn').addEventListener('click', () => {
-            if (!myUserId) return;
-
-            // Проверяем, ввёл ли пользователь имя
             const chosenName = usernameInput.value.trim();
             if (chosenName === "") {
                 alert("Пожалуйста, введите ваше имя перед входом!");
                 return;
             }
             
-            myUsername = chosenName; // Запоминаем введённое имя
+            myUsername = chosenName;
 
             navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
                 localStream = stream;
-                statusDiv.innerText = "Вы подключены под именем: " + myUsername;
+                statusDiv.innerText = "Вы подключены как: " + myUsername;
                 
-                // Переключаем экраны: прячем ввод ника, показываем чат
                 loginContainer.style.display = 'none';
                 appContainer.style.display = 'flex';
                 controlsBlock.style.display = 'block';
 
-                // Передаем на сервер комнату и наше ЛИЧНОЕ имя вместо случайного
                 socket.emit('join-room', ROOM_ID, myUserId, myUsername);
 
                 muteBtn.addEventListener('click', () => {
@@ -179,3 +170,14 @@
         socket.on('receive-chat-message', (author, text) => {
             const msgLine = document.createElement('div');
             msgLine.className = 'msg-line';
+            msgLine.innerHTML = '<span class="msg-author">' + author + ':</span><span>' + text + '</span>';
+            chatMessages.appendChild(msgLine);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+
+        socket.on('update-user-list', (users) => {
+            userCountSpan.innerText = users.length;
+            userListDiv.innerHTML = ''; 
+            users.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'user-item';
