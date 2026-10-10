@@ -368,7 +368,7 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         });
 
-        socket.on('user-speech-updated', (username, isSpeaking) => {
+                socket.on('user-speech-updated', (username, isSpeaking) => {
             const userItems = document.querySelectorAll('.user-item');
             userItems.forEach(item => {
                 if (item.getAttribute('data-username') === username) {
@@ -376,6 +376,8 @@
                     else item.classList.remove('speaking');
                 }
             });
+        });
+
         socket.on('update-user-list', (users, adminName) => {
             userCountSpan.innerText = users.length;
             userListDiv.innerHTML = ''; 
