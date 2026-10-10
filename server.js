@@ -35,14 +35,17 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('receive-chat-message', author, text);
     });
 
-    // Передаем сигнал начала демонстрации экрана всем участникам
     socket.on('start-screen-share', (roomId, userId, username) => {
         socket.to(roomId).emit('screen-shared-by-user', userId, username);
     });
 
-    // Передаем сигнал остановки демонстрации экрана
     socket.on('stop-screen-share', (roomId) => {
         socket.to(roomId).emit('screen-share-stopped-by-user');
+    });
+
+    // Принимаем статус речи от одного участника и транслируем его всем в комнате
+    socket.on('speech-state-change', (roomId, username, isSpeaking) => {
+        io.to(roomId).emit('user-speech-updated', username, isSpeaking);
     });
 
     socket.on('disconnect', () => {
@@ -50,6 +53,8 @@ io.on('connection', (socket) => {
             roomUsers[currentRoom] = roomUsers[currentRoom].filter(user => user !== currentUsername);
             io.to(currentRoom).emit('update-user-list', roomUsers[currentRoom]);
             socket.to(currentRoom).emit('screen-share-stopped-by-user');
+            // Принудительно гасим индикатор при выходе пользователя
+            io.to(currentRoom).emit('user-speech-updated', currentUsername, false);
         }
     });
 });
