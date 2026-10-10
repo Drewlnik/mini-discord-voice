@@ -177,37 +177,60 @@
 
                 startAudioAnalyser(stream);
 
-                muteBtn.addEventListener('click', () => {
-                    if (isDeafened) return;
-                    isMuted = !isMuted;
-                    localStream.getAudioTracks().forEach(track => { track.enabled = !isMuted; });
-                    muteBtn.innerText = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
-                    muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
-                    if (isMuted) {
+                                // Единая функция для железного обновления дорожки микрофона
+                function updateMicTrack() {
+                    // Микрофон должен работать ТОЛЬКО если выключен и Mute, и Deafen одновременно
+                    const shouldBeEnabled = !isMuted && !isDeafened;
+                    if (localStream) {
+                        localStream.getAudioTracks().forEach(track => {
+                            track.enabled = shouldBeEnabled;
+                        });
+                    }
+                    // Передаем статус речи на сервер: если микрофон выключен — принудительно гасим подсветку
+                    if (!shouldBeEnabled) {
                         socket.emit('speech-state-change', ROOM_ID, myUsername, false);
                     }
+                }
+
+                // Логика кнопки "Выключить микрофон" (Mute)
+                muteBtn.addEventListener('click', () => {
+                    if (isDeafened) return; // Если включен Deafen, кнопку микрофона блокируем
+                    
+                    isMuted = !isMuted;
+                    updateMicTrack(); // Синхронно обновляем железный трек
+                    
+                    muteBtn.innerText = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
+                    muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
                 });
 
+                // Логика кнопки "Выключить звук" (Deafen)
                 deafenBtn.addEventListener('click', () => {
                     isDeafened = !isDeafened;
-                    localStream.getAudioTracks().forEach(track => { track.enabled = !isDeafened; });
                     
+                    updateMicTrack(); // Синхронно глушим или включаем свой микрофон
+                    
+                    // Глушим или включаем звук всех входящих друзей в программе
                     const allAudios = document.querySelectorAll('audio');
-                    allAudios.forEach(audio => { audio.muted = isDeafened; });
+                    allAudios.forEach(audio => { 
+                        audio.muted = isDeafened; 
+                    });
 
+                    // Меняем дизайн кнопок в зависимости от режима
                     if (isDeafened) {
                         deafenBtn.innerText = "🎧 Включить звук";
-                        deafenBtn.style.background = "#3BA55D";
+                        deafenBtn.style.background = "#3BA55D"; // Зеленый
+                        
+                        // Визуально показываем, что микрофон тоже отключился из-за Deafen
                         muteBtn.innerText = "🔊 Включить микрофон";
-                        muteBtn.style.background = "#5865F2";
+                        muteBtn.style.background = "#5865F2"; // Синий (заблокирован)
                         statusDiv.innerText = "Режим тишины (Вы никого не слышите, вас тоже не слышно)";
-                        socket.emit('speech-state-change', ROOM_ID, myUsername, false);
                     } else {
                         deafenBtn.innerText = "🎧 Выключить звук";
-                        deafenBtn.style.background = "#e67e22";
-                        isMuted = false;
-                        muteBtn.innerText = "🔇 Выключить микрофон";
-                        muteBtn.style.background = "#ED4245";
+                        deafenBtn.style.background = "#e67e22"; // Оранжевый
+                        
+                        // Возвращаем кнопку микрофона в ее честный статус, который был у переменной isMuted
+                        muteBtn.innerText = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
+                        muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
                         statusDiv.innerText = "Вы подключены как: " + myUsername;
                     }
                 });
