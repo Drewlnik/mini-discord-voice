@@ -10,8 +10,8 @@
         #status { margin-top: 20px; color: #b9bbbe; font-weight: bold; }
     </style>
     <script src="/socket.io/socket.io.js"></script>
-    <!-- Подключаем самую стабильную внешнюю библиотеку PeerJS -->
-    <script src="https://unpkg.com"></script>
+    <!-- Гарантированно рабочая внешняя ссылка на PeerJS -->
+    <script src="https://jsdelivr.net"></script>
 </head>
 <body>
 
@@ -24,15 +24,15 @@
         const ROOM_ID = "main-friends-room"; 
         const statusDiv = document.getElementById('status');
         
-        // Создаем подключение к бесплатному облаку PeerJS
+        // Подключаемся к глобальному бесплатному облаку PeerJS
         const myPeer = new Peer();
 
         myPeer.on('open', userId => {
-            statusDiv.innerText = "Статус: Готов к общению! Нажмите кнопку.";
+            statusDiv.innerText = "Статус: Подключено к сети! Нажмите кнопку.";
             
             document.getElementById('join-btn').addEventListener('click', () => {
                 navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                    statusDiv.innerText = "Вы подключены! Ждем друзей...";
+                    statusDiv.innerText = "Вы подключены к голосу! Ждем друзей...";
                     socket.emit('join-room', ROOM_ID, userId);
 
                     myPeer.on('call', call => {
@@ -51,7 +51,7 @@
                         });
                     });
                 }).catch(err => {
-                    statusDiv.innerText = "Ошибка микрофона: " + err.message;
+                    statusDiv.innerText = "Ошибка доступа к микрофону: " + err.message;
                 });
             });
         });
