@@ -13,7 +13,6 @@ io.on('connection', (socket) => {
     let currentRoom = null;
     let currentUsername = null;
 
-    // Теперь принимаем customUsername прямо от поля ввода
     socket.on('join-room', (roomId, userId, customUsername) => {
         currentRoom = roomId;
         currentUsername = customUsername;
@@ -45,4 +44,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log('Сервер успешно запущен!'));
+server.listen(PORT, () => console.log('Бэкенд успешно запущен!'));
