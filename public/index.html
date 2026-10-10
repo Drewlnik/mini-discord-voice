@@ -11,10 +11,24 @@
         .btn-mute:hover { background: #C03B3E; }
         #status { margin-top: 20px; color: #b9bbbe; font-weight: bold; }
         .controls { margin-top: 20px; display: none; }
-        .online-box { background: #202225; border-radius: 8px; padding: 15px; max-width: 300px; margin: 20px auto; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
+        /* Сетка для интерфейса Дискорда */
+        .main-container { display: flex; max-width: 800px; margin: 20px auto; gap: 20px; justify-content: center; }
+        .online-box { background: #202225; border-radius: 8px; padding: 15px; width: 250px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); height: 350px; display: flex; flex-direction: column; }
         .online-title { font-size: 14px; text-transform: uppercase; color: #8e9297; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #2f3136; padding-bottom: 5px; }
+        .user-list-container { flex-grow: 1; overflow-y: auto; }
         .user-item { display: flex; align-items: center; margin: 8px 0; color: #dcddde; font-size: 15px; }
         .user-avatar { width: 10px; height: 10px; background: #3ba55d; border-radius: 50%; margin-right: 10px; }
+
+        /* Стили для Текстового Чата */
+        .chat-box { background: #202225; border-radius: 8px; padding: 15px; width: 450px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); height: 350px; display: flex; flex-direction: column; text-align: left; }
+        .chat-messages { flex-grow: 1; overflow-y: auto; background: #2f3136; border-radius: 4px; padding: 10px; margin-bottom: 10px; color: #dcddde; font-size: 14px; }
+        .chat-input-container { display: flex; gap: 10px; }
+        .chat-input { flex-grow: 1; background: #40444b; border: none; border-radius: 4px; padding: 10px; color: #fff; font-size: 14px; outline: none; }
+        .chat-send-btn { background: #3ba55d; color: white; border: none; padding: 0 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .chat-send-btn:hover { background: #2e854b; }
+        .msg-line { margin-bottom: 8px; word-break: break-all; }
+        .msg-author { font-weight: bold; color: #ffffff; margin-right: 5px; }
     </style>
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -23,11 +37,27 @@
 </head>
 <body>
 
-    <h1>🎙 OutlastPhone</h1>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
+        <h1 style="margin: 0; font-size: 32px;">🎙 OutlastPhone</h1>
+    </div>
     
-    <div class="online-box">
-        <div class="online-title">🟢 В сети : <span id="user-count">0</span></div>
-        <div id="user-list"></div>
+    <!-- Главный контейнер Дискорда -->
+    <div class="main-container">
+        <!-- Левая панель: Участники -->
+        <div class="online-box">
+            <div class="online-title">🟢 В сети: <span id="user-count">0</span></div>
+            <div class="user-list-container" id="user-list"></div>
+        </div>
+
+        <!-- Правая панель: Текстовый чат -->
+        <div class="chat-box">
+            <div class="online-title">💬 Текстовый чат</div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chat-input" placeholder="Написать в #general..." autocomplete="off">
+                <button class="chat-send-btn" id="chat-send-btn">Отправить</button>
+            </div>
+        </div>
     </div>
 
     <button class="btn" id="join-btn">Подключиться</button>
@@ -47,35 +77,35 @@
         const userCountSpan = document.getElementById('user-count');
         const userListDiv = document.getElementById('user-list');
         
+        // Элементы чата
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSendBtn = document.getElementById('chat-send-btn');
+        
         let localStream;
         let isMuted = false;
         let myUserId = null;
+        let myUsername = "";
 
         const myPeer = new Peer();
 
         myPeer.on('open', userId => {
             myUserId = userId;
+            myUsername = "User_" + userId.substr(0, 4);
             statusDiv.innerText = "Статус: Подключено к сети! Нажмите кнопку.";
             
-            // Запрашиваем изначальный список комнат (он пустой, пока никто не нажал войти)
-            socket.emit('request-user-list', ROOM_ID);
+            // Заходим на сервер сокетов сразу, чтобы работал текстовый чат
+            socket.emit('join-room', ROOM_ID, myUserId);
         });
 
         document.getElementById('join-btn').addEventListener('click', () => {
-            if (!myUserId) {
-                statusDiv.innerText = "Ошибка: Сеть еще не готова. Подождите секунду...";
-                return;
-            }
+            if (!myUserId) return;
 
             navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
                 localStream = stream;
-                
-                statusDiv.innerText = "Вы подключены...";
+                statusDiv.innerText = "Вы подключены!";
                 document.getElementById('join-btn').style.display = 'none';
                 controlsBlock.style.display = 'block';
-
-                // Отправляем сигнал входа строго после активации микрофона
-                socket.emit('join-room', ROOM_ID, myUserId);
 
                 muteBtn.addEventListener('click', () => {
                     isMuted = !isMuted;
@@ -109,10 +139,32 @@
             });
         });
 
+        // Отправка сообщений
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (text !== "") {
+                socket.emit('send-chat-message', ROOM_ID, myUsername, text);
+                chatInput.value = "";
+            }
+        }
+
+        chatSendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // Прием сообщений от сервера
+        socket.on('receive-chat-message', (author, text) => {
+            const msgLine = document.createElement('div');
+            msgLine.className = 'msg-line';
+            msgLine.innerHTML = `<span class="msg-author">${author}:</span><span>${text}</span>`;
+            chatMessages.appendChild(msgLine);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Автопрокрутка вниз
+        });
+
         socket.on('update-user-list', (users) => {
             userCountSpan.innerText = users.length;
             userListDiv.innerHTML = ''; 
-            
             users.forEach(user => {
                 const item = document.createElement('div');
                 item.className = 'user-item';
