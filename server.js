@@ -33,7 +33,6 @@ io.on('connection', (socket) => {
             roomUsers[roomId].push(currentUsername);
         }
 
-        // Проверяем секретный ключ на подлинность
         if (inputPassword === SECRET_ADMIN_PASSWORD) {
             roomAdmin[roomId] = currentUsername; 
             socket.emit('admin-verified'); 
@@ -48,19 +47,20 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('receive-chat-message', author, text, isAdminMsg);
     });
 
-    socket.on('start-screen-share', (roomId, userId, username) => {
-        socket.to(roomId).emit('screen-shared-by-user', userId, username);
+    // Универсальный приём начала трансляции (камера или экран)
+    socket.on('start-video-stream', (roomId, userId, username, streamType) => {
+        socket.to(roomId).emit('video-stream-started', userId, username, streamType);
     });
 
-    socket.on('stop-screen-share', (roomId) => {
-        socket.to(roomId).emit('screen-share-stopped-by-user');
+    // Универсальный приём остановки трансляции
+    socket.on('stop-video-stream', (roomId, streamType) => {
+        socket.to(roomId).emit('video-stream-stopped', socket.id, streamType);
     });
 
     socket.on('speech-state-change', (roomId, username, isSpeaking) => {
         io.to(roomId).emit('user-speech-updated', username, isSpeaking);
     });
 
-    // Обработка команды кика от администратора
     socket.on('kick-user-request', (roomId, targetUsername) => {
         if (roomAdmin[roomId] === currentUsername) {
             const targetSocketId = userSocketMap[targetUsername];
@@ -81,7 +81,10 @@ io.on('connection', (socket) => {
             delete userSocketMap[currentUsername];
             
             io.to(currentRoom).emit('update-user-list', roomUsers[currentRoom], roomAdmin[currentRoom] || null);
-            socket.to(currentRoom).emit('screen-share-stopped-by-user');
+            
+            // Отключаем все стримы пользователя при его выходе из сети
+            socket.to(currentRoom).emit('video-stream-stopped', socket.id, "screen");
+            socket.to(currentRoom).emit('video-stream-stopped', socket.id, "camera");
             io.to(currentRoom).emit('user-speech-updated', currentUsername, false);
         }
     });
