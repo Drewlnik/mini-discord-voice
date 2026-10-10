@@ -135,11 +135,25 @@
 
                 socket.emit('join-room', ROOM_ID, myUserId, myUsername);
 
+                                // Железобетонная логика Вкл/Выкл микрофона
                 muteBtn.addEventListener('click', () => {
                     isMuted = !isMuted;
-                    localStream.getAudioTracks().enabled = !isMuted; 
-                    muteBtn.innerText = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
-                    muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
+                    
+                    // Полностью перекрываем или активируем звуковую дорожку в самом потоке
+                    localStream.getAudioTracks().forEach(track => {
+                        track.enabled = !isMuted;
+                    });
+                    
+                    // Меняем внешний вид кнопки
+                    if (isMuted) {
+                        muteBtn.innerText = "🔊 Включить микрофон";
+                        muteBtn.style.background = "#3BA55D"; // Зеленый
+                        statusDiv.innerText = "Микрофон отключен (Вас не слышно)";
+                    } else {
+                        muteBtn.innerText = "🔇 Выключить микрофон";
+                        muteBtn.style.background = "#ED4245"; // Красный
+                        statusDiv.innerText = "Вы подключены как: " + myUsername;
+                    }
                 });
 
                 screenBtn.addEventListener('click', () => {
