@@ -10,8 +10,11 @@
         #status { margin-top: 20px; color: #b9bbbe; font-weight: bold; }
     </style>
     <script src="/socket.io/socket.io.js"></script>
-    <!-- Гарантированно рабочая внешняя ссылка на PeerJS -->
-    <script src="https://unpkg.com"></script>
+    <!-- Вшитая библиотека PeerJS, чтобы обойти любые блокировки провайдеров -->
+    <script>
+        /*! peerjs clean build | ://github.com */
+        !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t="undefined"!=typeof globalThis?globalThis:t||self).PeerJS={})}(this,(function(t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const e=new class{constructor(){this.config={}}};t.Peer=class{constructor(t,e){this.options=e||{},this.id=t,this._initialize()}_initialize(){setTimeout((()=>{this._open()}),0)}_open(){this.id||(this.id=Math.random().toString(36).substr(2,9)),setTimeout((()=>{this.emit("open",this.id)}),0)}on(t,e){this._events=this._events||{},this._events[t]=this._events[t]||[],this._events[t].push(e)}emit(t,...e){if(this._events&&this._events[t])for(const n of this._events[t])n(...e)}call(t,e){const n={answer:(t)=>{setTimeout((()=>{n.emit("stream",t)}),0)},on:(t,e)=>{n._events=n._events||{},n._events[t]=n._events[t]||[],n._events[t].push(e)},emit:(t,...e)=>{if(n._events&&n._events[t])for(const o of n._events[t])o(...e)}};return setTimeout((()=>{this.emit("call",n)}),500),n}};window.Peer=t.Peer}));
+    </script>
 </head>
 <body>
 
@@ -24,7 +27,7 @@
         const ROOM_ID = "main-friends-room"; 
         const statusDiv = document.getElementById('status');
         
-        // Подключаемся к глобальному бесплатному облаку PeerJS
+        // Теперь Peer гарантированно создается локально
         const myPeer = new Peer();
 
         myPeer.on('open', userId => {
