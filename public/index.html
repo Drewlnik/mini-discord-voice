@@ -2,18 +2,23 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Наш Голосовой Чат</title>
+    <title>Голосовой Чат</title>
     <style>
         body { font-family: sans-serif; background: #2f3136; color: #fff; padding: 20px; text-align: center; }
         .btn { background: #5865F2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px; font-weight: bold; }
         .btn:hover { background: #4752C4; }
-        .btn-mute { background: #ED4245; } /* Красная кнопка для выключения */
+        .btn-mute { background: #ED4245; }
         .btn-mute:hover { background: #C03B3E; }
         #status { margin-top: 20px; color: #b9bbbe; font-weight: bold; }
-        .controls { margin-top: 20px; display: none; } /* Скрыты, пока не подключимся */
+        .controls { margin-top: 20px; display: none; }
+        
+        /* Стили для счетчика и списка участников */
+        .online-box { background: #202225; border-radius: 8px; padding: 15px; max-width: 300px; margin: 20px auto; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .online-title { font-size: 14px; text-transform: uppercase; color: #8e9297; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #2f3136; padding-bottom: 5px; }
+        .user-item { display: flex; align-items: center; margin: 8px 0; color: #dcddde; font-size: 15px; }
+        .user-avatar { width: 10px; height: 10px; background: #3ba55d; border-radius: 50%; margin-right: 10px; }
     </style>
     <script src="/socket.io/socket.io.js"></script>
-    <!-- Вшитая библиотека PeerJS, чтобы обойти любые блокировки провайдеров -->
     <script>
         !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t="undefined"!=typeof globalThis?globalThis:t||self).PeerJS={})}(this,(function(t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const e=new class{constructor(){this.config={}}};t.Peer=class{constructor(t,e){this.options=e||{},this.id=t,this._initialize()}_initialize(){setTimeout((()=>{this._open()}),0)}_open(){this.id||(this.id=Math.random().toString(36).substr(2,9)),setTimeout((()=>{this.emit("open",this.id)}),0)}on(t,e){this._events=this._events||{},this._events[t]=this._events[t]||[],this._events[t].push(e)}emit(t,...e){if(this._events&&this._events[t])for(const n of this._events[t])n(...e)}call(t,e){const n={answer:(t)=>{setTimeout((()=>{n.emit("stream",t)}),0)},on:(t,e)=>{n._events=n._events||{},n._events[t]=n._events[t]||[],n._events[t].push(e)},emit:(t,...e)=>{if(n._events&&n._events[t])for(const o of n._events[t])o(...e)}};return setTimeout((()=>{this.emit("call",n)}),500),n}};window.Peer=t.Peer}));
     </script>
@@ -21,9 +26,17 @@
 <body>
 
     <h1>🎙 OutlastPhone</h1>
+    
+    <!-- Панель счетчика пользователей -->
+    <div class="online-box">
+        <div class="online-title">🟢 В сети room: <span id="user-count">0</span></div>
+        <div id="user-list">
+            <!-- Сюда будут добавляться пользователи -->
+        </div>
+    </div>
+
     <button class="btn" id="join-btn">Подключиться</button>
     
-    <!-- Блок управления микрофоном (появится после подключения) -->
     <div class="controls" id="controls-block">
         <button class="btn btn-mute" id="mute-btn">🔇 Выключить микрофон</button>
     </div>
@@ -36,35 +49,38 @@
         const statusDiv = document.getElementById('status');
         const muteBtn = document.getElementById('mute-btn');
         const controlsBlock = document.getElementById('controls-block');
+        const userCountSpan = document.getElementById('user-count');
+        const userListDiv = document.getElementById('user-list');
         
-        let localStream; // Здесь мы сохраним поток нашего микрофона
+        let localStream;
         let isMuted = false;
+        let myUsername = "Пользователь_" + Math.random().toString(36).substr(2, 4); // Случайное временное имя
 
         const myPeer = new Peer();
 
         myPeer.on('open', userId => {
             statusDiv.innerText = "Статус: Подключено к сети! Нажмите кнопку.";
             
+            // Запрашиваем актуальный список комнат сразу при входе
+            socket.emit('request-user-list', ROOM_ID);
+
             document.getElementById('join-btn').addEventListener('click', () => {
                 navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                    localStream = stream; // Запоминаем микрофон
+                    localStream = stream;
                     
-                    statusDiv.innerText = "Вы подключены...";
-                    document.getElementById('join-btn').style.display = 'none'; // Прячем кнопку входа
-                    controlsBlock.style.display = 'block'; // Показываем кнопку Mute
+                    statusDiv.innerText = "Вы подключены к голосу! Ждем друзей...";
+                    document.getElementById('join-btn').style.display = 'none';
+                    controlsBlock.style.display = 'block';
 
-                    // Логика кнопки Вкл/Выкл микрофон
                     muteBtn.addEventListener('click', () => {
                         isMuted = !isMuted;
-                        // Включаем или выключаем звуковую дорожку
-                        localStream.getAudioTracks()[0].enabled = !isMuted; 
-                        
+                        localStream.getAudioTracks().enabled = !isMuted; 
                         if (isMuted) {
                             muteBtn.innerText = "🔊 Включить микрофон";
-                            muteBtn.style.background = "#3BA55D"; // Меняем цвет на зеленый
+                            muteBtn.style.background = "#3BA55D";
                         } else {
                             muteBtn.innerText = "🔇 Выключить микрофон";
-                            muteBtn.style.background = "#ED4245"; // Возвращаем красный цвет
+                            muteBtn.style.background = "#ED4245";
                         }
                     });
 
@@ -86,6 +102,19 @@
                 }).catch(err => {
                     statusDiv.innerText = "Ошибка доступа к микрофону: " + err.message;
                 });
+            });
+        });
+
+        // Слушаем обновление списка пользователей от сервера
+        socket.on('update-user-list', (users) => {
+            userCountSpan.innerText = users.length;
+            userListDiv.innerHTML = ''; // Очищаем список перед обновлением
+            
+            users.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = `<div class="user-avatar"></div><span>${user}</span>`;
+                userListDiv.appendChild(item);
             });
         });
 
