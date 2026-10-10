@@ -13,9 +13,10 @@ io.on('connection', (socket) => {
     let currentRoom = null;
     let currentUsername = null;
 
-    socket.on('join-room', (roomId, userId) => {
+    // Теперь принимаем customUsername прямо от поля ввода
+    socket.on('join-room', (roomId, userId, customUsername) => {
         currentRoom = roomId;
-        currentUsername = "User_" + userId.substr(0, 4);
+        currentUsername = customUsername;
 
         socket.join(roomId);
         
@@ -31,7 +32,6 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('update-user-list', roomUsers[roomId]);
     });
 
-    // Принимаем текстовое сообщение от клиента и транслируем его всем в комнате
     socket.on('send-chat-message', (roomId, author, text) => {
         io.to(roomId).emit('receive-chat-message', author, text);
     });
@@ -45,4 +45,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+server.listen(PORT, () => console.log('Сервер успешно запущен!'));
