@@ -181,3 +181,18 @@
             users.forEach(user => {
                 const item = document.createElement('div');
                 item.className = 'user-item';
+            item.innerHTML = '<div class="user-avatar"></div><span>' + user + '</span>';
+            userListDiv.appendChild(item);
+        });
+    });
+
+    function addAudioStream(audio, stream) {
+        audio.srcObject = stream;
+        audio.addEventListener('loadedmetadata', () => {
+            audio.play();
+        });
+        document.body.append(audio);
+    }
+</script>
+</body>
+</html>
