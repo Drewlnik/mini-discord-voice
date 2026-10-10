@@ -18,8 +18,8 @@
 </head>
 <body>
 
-    <h1>🎙 Наш мини-Discord</h1>
-    <button class="btn" id="join-btn">Подключиться к голосу</button>
+    <h1>🎙 OutlastPhone</h1>
+    <button class="btn" id="join-btn">Подключиться</button>
     <div id="status">Статус: Инициализация связи...</div>
 
     <script>
@@ -35,7 +35,7 @@
             
             document.getElementById('join-btn').addEventListener('click', () => {
                 navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                    statusDiv.innerText = "Вы подключены к голосу! Ждем друзей...";
+                    statusDiv.innerText = "Вы подключены...";
                     socket.emit('join-room', ROOM_ID, userId);
 
                     myPeer.on('call', call => {
