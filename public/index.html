@@ -165,3 +165,99 @@
                             // Если трансляцию выключили через системную панель Windows
                             screenStream.getVideoTracks()[0].addEventListener('ended', () => {
                                 stopScreenShare();
+                        }).catch(err => console.log("Стрим экрана отменен"));
+                    } else {
+                        stopScreenShare();
+                    }
+                });
+
+                myPeer.on('call', call => {
+                    call.answer(localStream); 
+                    call.on('stream', userStream => {
+                        if (userStream.getVideoTracks().length > 0) {
+                            videoContainer.style.display = 'block';
+                            screenVideo.srcObject = userStream;
+                        } else {
+                            const audio = document.createElement('audio');
+                            addAudioStream(audio, userStream);
+                        }
+                    });
+                });
+
+                socket.on('user-connected', newUserId => {
+                    myPeer.call(newUserId, localStream);
+                });
+                
+                socket.on('screen-shared-by-user', (userId, username) => {
+                    videoTitle.innerText = "📺 Экран транслирует: " + username;
+                    const call = myPeer.call(userId, localStream);
+                    call.on('stream', remoteVideoStream => {
+                        videoContainer.style.display = 'block';
+                        screenVideo.srcObject = remoteVideoStream;
+                    });
+                });
+
+                socket.on('screen-share-stopped-by-user', () => {
+                    videoContainer.style.display = 'none';
+                    screenVideo.srcObject = null;
+                });
+
+            }).catch(err => {
+                statusDiv.innerText = "Ошибка доступа к микрофону: " + err.message;
+            });
+        });
+
+        function stopScreenShare() {
+            if (screenStream) {
+                screenStream.getTracks().forEach(track => track.stop());
+            }
+            isSharingScreen = false;
+            screenBtn.innerText = "📺 Включить экран";
+            screenBtn.style.background = "#3ba55d";
+            videoContainer.style.display = 'none';
+            screenVideo.srcObject = null;
+            socket.emit('stop-screen-share', ROOM_ID);
+        }
+
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (text !== "") {
+                socket.emit('send-chat-message', ROOM_ID, myUsername, text);
+                chatInput.value = "";
+            }
+        }
+
+        chatSendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        socket.on('receive-chat-message', (author, text) => {
+            const msgLine = document.createElement('div');
+            msgLine.className = 'msg-line';
+            msgLine.innerHTML = '<span class="msg-author">' + author + ':</span><span>' + text + '</span>';
+            chatMessages.appendChild(msgLine);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+
+        socket.on('update-user-list', (users) => {
+            userCountSpan.innerText = users.length;
+            userListDiv.innerHTML = ''; 
+            users.forEach(user => {
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = '<div class="user-avatar"></div><span>' + user + '</span>';
+                userListDiv.appendChild(item);
+            });
+        });
+
+        function addAudioStream(audio, stream) {
+            audio.srcObject = stream;
+            audio.addEventListener('loadedmetadata', () => {
+                audio.play();
+            });
+            document.body.append(audio);
+        }
+    </script>
+</body>
+</html>
