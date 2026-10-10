@@ -13,6 +13,8 @@
         .btn-screen:hover { background: #2e854b; }
         .btn-camera { background: #9b59b6; }
         .btn-camera:hover { background: #8e44ad; }
+        .btn-deafen { background: #e67e22; }
+        .btn-deafen:hover { background: #d35400; }
         #status { margin-top: 20px; color: #b9bbbe; font-weight: bold; }
         .controls { margin-top: 20px; display: none; }
         
@@ -40,7 +42,6 @@
         .msg-author { font-weight: bold; color: #ffffff; margin-right: 5px; }
         .msg-author.admin-text { color: #ED4245 !important; }
         
-        /* Сетка видеоконференции (веб-камеры и стримы экранов) */
         .video-box { background: #202225; border-radius: 8px; padding: 15px; width: 100%; max-width: 900px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; margin-top: 10px; }
         .video-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 10px; }
         .video-wrapper { background: #000; border-radius: 6px; overflow: hidden; position: relative; width: 280px; height: 210px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
@@ -92,7 +93,6 @@
             </div>
         </div>
 
-        <!-- Контейнер для медиапотоков видеоконференции -->
         <div class="video-box" id="video-container">
             <div class="online-title">📺 Видеоконференция и трансляции</div>
             <div class="video-grid" id="video-grid"></div>
@@ -101,6 +101,7 @@
     
     <div class="controls" id="controls-block">
         <button class="btn btn-mute" id="mute-btn">🔇 Выключить микрофон</button>
+        <button class="btn btn-deafen" id="deafen-btn">🎧 Выключить звук</button>
         <button class="btn btn-screen" id="screen-btn">📺 Включить экран</button>
         <button class="btn btn-camera" id="camera-btn">📷 Включить камеру</button>
     </div>
@@ -112,6 +113,7 @@
         const ROOM_ID = "main-friends-room"; 
         const statusDiv = document.getElementById('status');
         const muteBtn = document.getElementById('mute-btn');
+        const deafenBtn = document.getElementById('deafen-btn');
         const screenBtn = document.getElementById('screen-btn');
         const cameraBtn = document.getElementById('camera-btn');
         const controlsBlock = document.getElementById('controls-block');
@@ -136,6 +138,7 @@
         let screenStream;
         let cameraStream;
         let isMuted = false;
+        let isDeafened = false;
         let isSharingScreen = false;
         let isSharingCamera = false;
         let myUserId = null;
@@ -145,7 +148,6 @@
         let audioLevelInterval = null;
 
         const myPeer = new Peer();
-
         myPeer.on('open', userId => {
             myUserId = userId;
             statusDiv.innerText = "Статус: Подключено к сети! Введите данные.";
@@ -176,10 +178,9 @@
                 startAudioAnalyser(stream);
 
                 muteBtn.addEventListener('click', () => {
+                    if (isDeafened) return;
                     isMuted = !isMuted;
-                    localStream.getAudioTracks().forEach(track => {
-                        track.enabled = !isMuted;
-                    });
+                    localStream.getAudioTracks().forEach(track => { track.enabled = !isMuted; });
                     muteBtn.innerText = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
                     muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
                     if (isMuted) {
@@ -187,46 +188,57 @@
                     }
                 });
 
+                deafenBtn.addEventListener('click', () => {
+                    isDeafened = !isDeafened;
+                    localStream.getAudioTracks().forEach(track => { track.enabled = !isDeafened; });
+                    
+                    const allAudios = document.querySelectorAll('audio');
+                    allAudios.forEach(audio => { audio.muted = isDeafened; });
+
+                    if (isDeafened) {
+                        deafenBtn.innerText = "🎧 Включить звук";
+                        deafenBtn.style.background = "#3BA55D";
+                        muteBtn.innerText = "🔊 Включить микрофон";
+                        muteBtn.style.background = "#5865F2";
+                        statusDiv.innerText = "Режим тишины (Вы никого не слышите, вас тоже не слышно)";
+                        socket.emit('speech-state-change', ROOM_ID, myUsername, false);
+                    } else {
+                        deafenBtn.innerText = "🎧 Выключить звук";
+                        deafenBtn.style.background = "#e67e22";
+                        isMuted = false;
+                        muteBtn.innerText = "🔇 Выключить микрофон";
+                        muteBtn.style.background = "#ED4245";
+                        statusDiv.innerText = "Вы подключены как: " + myUsername;
+                    }
+                });
+
                 screenBtn.addEventListener('click', () => {
                     if (!isSharingScreen) {
                         if (isSharingCamera) stopCameraShare();
-                        
                         navigator.mediaDevices.getDisplayMedia({ video: true }).then(stream => {
                             screenStream = stream;
                             isSharingScreen = true;
                             screenBtn.innerText = "🛑 Выключить экран";
                             screenBtn.style.background = "#ED4245";
-                            
                             addVideoElement(myUserId + "-screen", screenStream, "Ваш экран");
-
                             socket.emit('start-video-stream', ROOM_ID, myUserId, myUsername, "screen");
-
-                            screenStream.getVideoTracks()[0].addEventListener('ended', () => {
-                                stopScreenShare();
-                            });
+                            screenStream.getVideoTracks()[0].addEventListener('ended', () => { stopScreenShare(); });
                         }).catch(err => console.log(err));
-                    } else {
-                        stopScreenShare();
-                    }
+                    } else { stopScreenShare(); }
                 });
 
                 cameraBtn.addEventListener('click', () => {
                     if (!isSharingCamera) {
                         if (isSharingScreen) stopScreenShare();
-                        
                         navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
                             cameraStream = stream;
                             isSharingCamera = true;
                             cameraBtn.innerText = "🛑 Выключить камеру";
                             cameraBtn.style.background = "#ED4245";
-                            
                             addVideoElement(myUserId + "-camera", cameraStream, "Вы (Камера)");
-
                             socket.emit('start-video-stream', ROOM_ID, myUserId, myUsername, "camera");
-                        }).catch(err => alert("Веб-камера не найдена или доступ запрещен"));
-                    } else {
-                        stopCameraShare();
-                    }
+                        }).catch(err => alert("Камера не найдена"));
+                    } else { stopCameraShare(); }
                 });
 
                 myPeer.on('call', call => {
@@ -237,188 +249,93 @@
                             addVideoElement(callId, userStream, "Стрим");
                         } else {
                             const audio = document.createElement('audio');
+                            if (isDeafened) audio.muted = true; 
                             addAudioStream(audio, userStream);
                         }
                     });
                 });
 
-                socket.on('user-connected', newUserId => {
-                    myPeer.call(newUserId, localStream);
-                });
+                socket.on('user-connected', newUserId => { myPeer.call(newUserId, localStream); });
                 
                 socket.on('video-stream-started', (userId, username, streamType) => {
                     const labelText = streamType === "screen" ? "Экран: " + username : "Камера: " + username;
                     const call = myPeer.call(userId, localStream);
-                    call.on('stream', remoteVideoStream => {
-                        addVideoElement(userId + "-" + streamType, remoteVideoStream, labelText);
-                    });
+                    call.on('stream', remoteVideoStream => { addVideoElement(userId + "-" + streamType, remoteVideoStream, labelText); });
                 });
-
-                socket.on('video-stream-stopped', (userId, streamType) => {
-                    removeVideoElement(userId + "-" + streamType);
-                });
-
-            }).catch(err => {
-                statusDiv.innerText = "Ошибка доступа к микрофону: " + err.message;
-            });
+                socket.on('video-stream-stopped', (userId, streamType) => { removeVideoElement(userId + "-" + streamType); });
+            }).catch(err => { statusDiv.innerText = "Ошибка микрофона: " + err.message; });
         });
 
-        socket.on('admin-verified', () => {
-            amIAdmin = true;
-            statusDiv.innerText = "Вы вошли как Создатель канала 👑";
-        });
-
-        socket.on('you-are-kicked', () => {
-            alert("Вы были кикнуты администратором из этого канала!");
-            location.reload();
-        });
+        socket.on('admin-verified', () => { amIAdmin = true; statusDiv.innerText = "Вы вошли как Создатель канала 👑"; });
+        socket.on('you-are-kicked', () => { alert("Вы были кикнуты администратором!"); location.reload(); });
 
         function addVideoElement(id, stream, labelText) {
             videoContainer.style.display = 'block';
             let wrapper = document.getElementById(id);
             if (!wrapper) {
-                wrapper = document.createElement('div');
-                wrapper.className = 'video-wrapper';
-                wrapper.id = id;
-                
-                const video = document.createElement('video');
-                video.autoplay = true;
-                video.playsinline = true;
-                video.srcObject = stream;
-                
-                const label = document.createElement('div');
-                label.className = 'video-label';
-                label.innerText = labelText;
-                
-                wrapper.appendChild(video);
-                wrapper.appendChild(label);
-                videoGrid.appendChild(wrapper);
+                wrapper = document.createElement('div'); wrapper.className = 'video-wrapper'; wrapper.id = id;
+                const video = document.createElement('video'); video.autoplay = true; video.playsinline = true; video.srcObject = stream;
+                const label = document.createElement('div'); label.className = 'video-label'; label.innerText = labelText;
+                wrapper.appendChild(video); wrapper.appendChild(label); videoGrid.appendChild(wrapper);
             }
         }
-
         function removeVideoElement(id) {
-            const wrapper = document.getElementById(id);
-            if (wrapper) wrapper.remove();
-            if (videoGrid.children.length === 0) {
-                videoContainer.style.display = 'none';
-            }
+            const wrapper = document.getElementById(id); if (wrapper) wrapper.remove();
+            if (videoGrid.children.length === 0) videoContainer.style.display = 'none';
         }
-
         function stopScreenShare() {
             if (screenStream) screenStream.getTracks().forEach(track => track.stop());
-            isSharingScreen = false;
-            screenBtn.innerText = "📺 Включить экран";
-            screenBtn.style.background = "#3ba55d";
-            removeVideoElement(myUserId + "-screen");
-            socket.emit('stop-video-stream', ROOM_ID, "screen");
+            isSharingScreen = false; screenBtn.innerText = "📺 Включить экран"; screenBtn.style.background = "#3ba55d";
+            removeVideoElement(myUserId + "-screen"); socket.emit('stop-video-stream', ROOM_ID, "screen");
         }
-
         function stopCameraShare() {
             if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
-            isSharingCamera = false;
-            cameraBtn.innerText = "📷 Включить камеру";
-            cameraBtn.style.background = "#9b59b6";
-            removeVideoElement(myUserId + "-camera");
-            socket.emit('stop-video-stream', ROOM_ID, "camera");
+            isSharingCamera = false; cameraBtn.innerText = "📷 Включить камеру"; cameraBtn.style.background = "#9b59b6";
+            removeVideoElement(myUserId + "-camera"); socket.emit('stop-video-stream', ROOM_ID, "camera");
         }
-
         function startAudioAnalyser(stream) {
             try {
                 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const analyser = audioContext.createAnalyser();
-                const source = audioContext.createMediaStreamSource(stream);
-                source.connect(analyser);
-                analyser.fftSize = 512;
-                const bufferLength = analyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
+                const analyser = audioContext.createAnalyser(); const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser); analyser.fftSize = 512; const bufferLength = analyser.frequencyBinCount; const dataArray = new Uint8Array(bufferLength);
                 let wasSpeaking = false;
-
                 audioLevelInterval = setInterval(() => {
-                    if (isMuted) return;
-                    analyser.getByteFrequencyData(dataArray);
-                    let sum = 0;
-                    for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
-                    let average = sum / bufferLength;
-                    let isSpeaking = average > 12;
-                    if (isSpeaking !== wasSpeaking) {
-                        wasSpeaking = isSpeaking;
-                        socket.emit('speech-state-change', ROOM_ID, myUsername, isSpeaking);
-                    }
+                    if (isMuted || isDeafened) return;
+                    analyser.getByteFrequencyData(dataArray); let sum = 0; for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
+                    let average = sum / bufferLength; let isSpeaking = average > 12;
+                    if (isSpeaking !== wasSpeaking) { wasSpeaking = isSpeaking; socket.emit('speech-state-change', ROOM_ID, myUsername, isSpeaking); }
                 }, 150);
             } catch (e) { console.log(e); }
         }
-
-        function sendMessage() {
-            const text = chatInput.value.trim();
-            if (text !== "") {
-                socket.emit('send-chat-message', ROOM_ID, myUsername, text);
-                chatInput.value = "";
-            }
-        }
-
-        chatSendBtn.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
-
+        function sendMessage() { const text = chatInput.value.trim(); if (text !== "") { socket.emit('send-chat-message', ROOM_ID, myUsername, text); chatInput.value = ""; } }
+        chatSendBtn.addEventListener('click', sendMessage); chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
         socket.on('receive-chat-message', (author, text, isAdminMsg) => {
-            const msgLine = document.createElement('div');
-            msgLine.className = 'msg-line';
-            const adminClass = isAdminMsg ? ' admin-text' : '';
+            const msgLine = document.createElement('div'); msgLine.className = 'msg-line'; const adminClass = isAdminMsg ? ' admin-text' : '';
             msgLine.innerHTML = '<span class="msg-author' + adminClass + '">' + author + ':</span><span>' + text + '</span>';
-            chatMessages.appendChild(msgLine);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            chatMessages.appendChild(msgLine); chatMessages.scrollTop = chatMessages.scrollHeight;
         });
-
-                socket.on('user-speech-updated', (username, isSpeaking) => {
+        socket.on('user-speech-updated', (username, isSpeaking) => {
             const userItems = document.querySelectorAll('.user-item');
-            userItems.forEach(item => {
-                if (item.getAttribute('data-username') === username) {
-                    if (isSpeaking) item.classList.add('speaking');
-                    else item.classList.remove('speaking');
-                }
-            });
+            userItems.forEach(item => { if (item.getAttribute('data-username') === username) { if (isSpeaking) item.classList.add('speaking'); else item.classList.remove('speaking'); } });
         });
 
         socket.on('update-user-list', (users, adminName) => {
-            userCountSpan.innerText = users.length;
-            userListDiv.innerHTML = ''; 
+            userCountSpan.innerText = users.length; userListDiv.innerHTML = ''; 
             users.forEach(user => {
-                const item = document.createElement('div');
-                item.className = 'user-item';
-                item.setAttribute('data-username', user);
-                
-                if (user === adminName) {
-                    item.className += ' admin-role';
-                    item.innerHTML = '<div class="user-avatar"></div><span>' + user + '</span><span class="crown">👑</span>';
-                } else {
-                    item.innerHTML = '<div class="user-avatar"></div><span>' + user + '</span>';
-                }
-                
-                item.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    if (!amIAdmin || user === adminName) return;
-                    selectedUserToKick = user;
-                    ctxMenu.style.display = 'block';
-                    ctxMenu.style.left = e.pageX + 'px';
-                    ctxMenu.style.top = e.pageY + 'px';
-                });
-
+                const item = document.createElement('div'); item.className = 'user-item'; item.setAttribute('data-username', user);
+                if (user === adminName) { item.className += ' admin-role'; item.innerHTML = '<div class="user-avatar"></div><span>' + user + '</span><span class="crown">👑</span>'; }
+                else { item.innerHTML = '<div class="user-avatar"></div><span>' + user + '</span>'; }
+                item.addEventListener('contextmenu', (e) => { e.preventDefault(); if (!amIAdmin || user === adminName) return; selectedUserToKick = user; ctxMenu.style.display = 'block'; ctxMenu.style.left = e.pageX + 'px'; ctxMenu.style.top = e.pageY + 'px'; });
                 userListDiv.appendChild(item);
             });
         });
 
         document.addEventListener('click', () => { ctxMenu.style.display = 'none'; });
 
-        kickAction.addEventListener('click', () => {
-            if (selectedUserToKick) {
-                socket.emit('kick-user-request', ROOM_ID, selectedUserToKick);
-            }
-        });
+        kickAction.addEventListener('click', () => { if (selectedUserToKick) { socket.emit('kick-user-request', ROOM_ID, selectedUserToKick); } });
 
-        function addAudioStream(audio, stream) {
-            audio.srcObject = stream;
-            audio.addEventListener('loadedmetadata', () => { audio.play(); });
-            document.body.append(audio);
-        }
+        function addAudioStream(audio, stream) { audio.srcObject = stream; audio.addEventListener('loadedmetadata', () => { audio.play(); }); document.body.append(audio); }
     </script>
 </body>
 </html>
+
