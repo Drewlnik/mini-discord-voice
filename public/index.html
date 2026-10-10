@@ -179,8 +179,19 @@
                     }
                 });
 
+                                // Исправленный приём звонков: теперь ваш Mute не глушит входящий звук!
                 myPeer.on('call', call => {
-                    call.answer(localStream); 
+                    // Создаем пустой независимый поток для ответа, чтобы не привязываться к localStream
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const destination = audioContext.createMediaStreamDestination();
+                    
+                    // Если у нас включен микрофон — добавляем его дорожку, если выключен — отправляем тишину, но связь НЕ рвём
+                    if (localStream && !isMuted) {
+                        call.answer(localStream);
+                    } else {
+                        call.answer(destination.stream);
+                    }
+                    
                     call.on('stream', userStream => {
                         if (userStream.getVideoTracks().length > 0) {
                             videoContainer.style.display = 'block';
