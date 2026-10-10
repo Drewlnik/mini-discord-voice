@@ -161,19 +161,13 @@
                 });
 
                                 // Исправленный приём звонков: теперь ваш Mute не глушит входящий звук!
+                                // Идеальный и простой прием звонков: аудио и видео работают параллельно
                 myPeer.on('call', call => {
-                    // Создаем пустой независимый поток для ответа, чтобы не привязываться к localStream
-                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    const destination = audioContext.createMediaStreamDestination();
-                    
-                    // Если у нас включен микрофон — добавляем его дорожку, если выключен — отправляем тишину, но связь НЕ рвём
-                    if (localStream && !isMuted) {
-                        call.answer(localStream);
-                    } else {
-                        call.answer(destination.stream);
-                    }
+                    // Отвечаем нашим стандартным локальным потоком (даже если он в режиме Mute, связь не прервется)
+                    call.answer(localStream); 
                     
                     call.on('stream', userStream => {
+                        // Если это поток экрана — показываем видео, если голос — включаем звук
                         if (userStream.getVideoTracks().length > 0) {
                             videoContainer.style.display = 'block';
                             screenVideo.srcObject = userStream;
