@@ -35,10 +35,21 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('receive-chat-message', author, text);
     });
 
+    // Передаем сигнал начала демонстрации экрана всем участникам
+    socket.on('start-screen-share', (roomId, userId, username) => {
+        socket.to(roomId).emit('screen-shared-by-user', userId, username);
+    });
+
+    // Передаем сигнал остановки демонстрации экрана
+    socket.on('stop-screen-share', (roomId) => {
+        socket.to(roomId).emit('screen-share-stopped-by-user');
+    });
+
     socket.on('disconnect', () => {
         if (currentRoom && currentUsername && roomUsers[currentRoom]) {
             roomUsers[currentRoom] = roomUsers[currentRoom].filter(user => user !== currentUsername);
             io.to(currentRoom).emit('update-user-list', roomUsers[currentRoom]);
+            socket.to(currentRoom).emit('screen-share-stopped-by-user');
         }
     });
 });
