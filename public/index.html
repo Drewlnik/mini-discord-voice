@@ -45,9 +45,68 @@
 
         .video-box { background: #202225; border-radius: 8px; padding: 15px; width: 100%; max-width: 900px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; margin-top: 10px; }
         .video-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 10px; }
-        .video-wrapper { background: #000; border-radius: 6px; overflow: hidden; position: relative; width: 280px; height: 210px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
-        .video-wrapper video { width: 100%; height: 100%; object-fit: cover; }
-        .video-label { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: #fff; }
+
+        .video-wrapper {
+            background: #000; border-radius: 6px; overflow: hidden;
+            position: relative; width: 280px; height: 210px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        .video-wrapper video {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: block;
+            cursor: pointer;
+        }
+        .video-label {
+            position: absolute; bottom: 8px; left: 8px;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 8px; border-radius: 4px;
+            font-size: 12px; font-weight: bold; color: #fff;
+            pointer-events: none;
+        }
+        .video-fullscreen-btn {
+            position: absolute; top: 6px; right: 6px;
+            background: rgba(0,0,0,0.6); color: #fff;
+            border: none; border-radius: 4px;
+            padding: 4px 8px; font-size: 14px; line-height: 1;
+            cursor: pointer; opacity: 0;
+            transition: opacity 0.15s ease, background 0.15s ease;
+        }
+        .video-wrapper:hover .video-fullscreen-btn { opacity: 1; }
+        .video-fullscreen-btn:hover { background: rgba(0,0,0,0.9); }
+
+        /* Полноэкранный режим */
+        .video-wrapper:fullscreen,
+        .video-wrapper:-webkit-full-screen {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+        .video-wrapper:fullscreen video,
+        .video-wrapper:-webkit-full-screen video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .video-wrapper:fullscreen .video-label,
+        .video-wrapper:-webkit-full-screen .video-label {
+            font-size: 18px;
+            padding: 6px 14px;
+            bottom: 16px;
+            left: 16px;
+        }
+        .video-wrapper:fullscreen .video-fullscreen-btn,
+        .video-wrapper:-webkit-full-screen .video-fullscreen-btn {
+            opacity: 1;
+            font-size: 20px;
+            padding: 8px 14px;
+            top: 16px;
+            right: 16px;
+        }
 
         .login-box { background: #202225; border-radius: 8px; padding: 25px; max-width: 400px; margin: 30px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; }
         .login-input { background: #40444b; border: none; border-radius: 4px; padding: 12px; color: #fff; font-size: 16px; outline: none; width: 85%; text-align: center; margin-bottom: 15px; }
@@ -372,8 +431,6 @@ socket.on('receive-chat-message', (author, text, isAdminMsg) => {
 });
 
 /* ================== Управление микрофоном / звуком ================== */
-
-// Применяет фактическое состояние микрофона к MediaStreamTrack
 function applyMicState() {
     const shouldBeEnabled = !isMuted && !isDeafened;
     if (localStream) {
@@ -381,24 +438,17 @@ function applyMicState() {
             track.enabled = shouldBeEnabled;
         });
     }
-    // Если микрофон выключен — принудительно гасим индикатор
     if (!shouldBeEnabled && hasJoined) {
         try {
             socket.emit('speech-state-change', ROOM_ID, myUsername, false);
-        } catch (e) { /* игнорируем сетевые ошибки */ }
+        } catch (e) {}
     }
 }
 
-// Единая отрисовка внешнего вида кнопок
 function renderControls() {
-    // --- Кнопка Mute ---
-    // ВАЖНО: не ставим disabled — иначе клик не сработает.
-    // Просто меняем текст и цвет, и помечаем "заблокировано" классом.
     muteBtn.classList.toggle('blocked', isDeafened);
 
     if (isDeafened) {
-        // Когда включён Deafen — микрофон всё равно выключен.
-        // Показываем намерение пользователя (isMuted) в тексте.
         muteBtn.textContent = isMuted
             ? "🔊 Включить микрофон (Deafen)"
             : "🔇 Микрофон выключен (Deafen)";
@@ -408,7 +458,6 @@ function renderControls() {
         muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
     }
 
-    // --- Кнопка Deafen ---
     if (isDeafened) {
         deafenBtn.textContent = "🎧 Включить звук";
         deafenBtn.style.background = "#3BA55D";
@@ -418,7 +467,6 @@ function renderControls() {
     }
 }
 
-// Обновление строки статуса
 function updateStatusText() {
     if (isDeafened && isMuted) {
         statusDiv.textContent = "Режим тишины: вас не слышно, вы никого не слышите";
@@ -431,14 +479,11 @@ function updateStatusText() {
     }
 }
 
-// --- Mute ---
 muteBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Даже если Deafen включён — разрешаем менять "намерение" микрофона.
     isMuted = !isMuted;
-
     try { applyMicState(); } catch (err) { console.error('applyMicState:', err); }
     renderControls();
     updateStatusText();
@@ -447,16 +492,13 @@ muteBtn.addEventListener('click', (e) => {
                 '| track.enabled =', localStream ? localStream.getAudioTracks()[0].enabled : '—');
 });
 
-// --- Deafen ---
 deafenBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
 
     isDeafened = !isDeafened;
-
     try { applyMicState(); } catch (err) { console.error('applyMicState:', err); }
 
-    // Глушим / включаем все входящие аудио
     audioElements.forEach(audio => { audio.muted = isDeafened; });
 
     renderControls();
@@ -623,6 +665,31 @@ kickAction.addEventListener('click', (e) => {
     }
 });
 
+/* ================== Полноэкранный режим ================== */
+function isFullscreen(el) {
+    return document.fullscreenElement === el ||
+           document.webkitFullscreenElement === el;
+}
+
+function requestFullscreen(el) {
+    if (el.requestFullscreen) return el.requestFullscreen();
+    if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+    return Promise.reject(new Error('Fullscreen API не поддерживается'));
+}
+
+function exitFullscreen() {
+    if (document.exitFullscreen) return document.exitFullscreen();
+    if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+}
+
+function toggleFullscreen(el) {
+    if (isFullscreen(el)) {
+        exitFullscreen();
+    } else {
+        requestFullscreen(el).catch(err => console.warn('Fullscreen error:', err));
+    }
+}
+
 /* ================== Помощники для видео ================== */
 function addVideoElement(id, stream, labelText, muted = false) {
     videoContainer.style.display = 'block';
@@ -638,13 +705,27 @@ function addVideoElement(id, stream, labelText, muted = false) {
         video.playsInline = true;
         video.muted = muted;
         video.srcObject = stream;
+        // Двойной клик — развернуть / свернуть
+        video.addEventListener('dblclick', () => toggleFullscreen(wrapper));
+        // Клик по одиночному нажатию ничего не делает — чтобы не мешало
 
         const label = document.createElement('div');
         label.className = 'video-label';
         label.textContent = labelText;
 
+        const fsBtn = document.createElement('button');
+        fsBtn.className = 'video-fullscreen-btn';
+        fsBtn.type = 'button';
+        fsBtn.title = 'На весь экран';
+        fsBtn.textContent = '⛶';
+        fsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFullscreen(wrapper);
+        });
+
         wrapper.appendChild(video);
         wrapper.appendChild(label);
+        wrapper.appendChild(fsBtn);
         videoGrid.appendChild(wrapper);
     } else {
         const video = wrapper.querySelector('video');
@@ -655,6 +736,10 @@ function addVideoElement(id, stream, labelText, muted = false) {
 function removeVideoElement(id) {
     const wrapper = document.getElementById(id);
     if (wrapper) {
+        // Если элемент был в полноэкранном режиме — выходим
+        if (isFullscreen(wrapper)) {
+            exitFullscreen().catch(() => {});
+        }
         const video = wrapper.querySelector('video');
         if (video) {
             video.pause();
