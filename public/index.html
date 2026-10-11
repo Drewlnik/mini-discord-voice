@@ -151,7 +151,13 @@ const videoCalls    = new Map(); // "peerId-type" -> call
 const audioElements = new Map(); // peerId -> audio element
 
 /* ================== PeerJS ================== */
-const myPeer = new Peer();
+const myPeer = new Peer(undefined, {
+    host: location.hostname, // Используем ваш домен (например, mini-discord-voice.onrender.com)
+    port: location.port || (location.protocol === 'https:' ? 443 : 80), // Стандартный порт для HTTPS
+    path: '/peerjs', // Путь, который мы задали в server.js
+    secure: location.protocol === 'https:', // Важно: true для HTTPS, false для HTTP
+    debug: 1 // Включаем отладку, чтобы видеть больше деталей в консоли
+});
 
 myPeer.on('open', id => {
     myPeerId = id;
