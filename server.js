@@ -5,12 +5,21 @@ const io = require('socket.io')(server, {
     cors: { origin: "*" }
 });
 
+// --- ДОБАВЛЯЕМ ПОДДЕРЖКУ PEERJS ---
+const { ExpressPeerServer } = require('peer');
+const peerServer = ExpressPeerServer(server, {
+    path: '/', // Это путь, по которому будет доступен PeerJS сервер
+    allow_discovery: true, // Разрешает клиентам находить друг друга (для тестов)
+    proxied: true // Важно для работы за прокси (например, в облаке)
+});
+
+app.use('/peerjs', peerServer); // Подключаем PeerJS сервер к пути /peerjs
+// ------------------------------------
+
 app.use(express.static('public'));
 
-// Секретный пароль администратора
+// ... остальной код server.js остаётся без изменений ...
 const SECRET_ADMIN_PASSWORD = "48103650550";
-
-// rooms: roomId -> { users: Map<username, { socketId, peerId }>, admin: username|null }
 const rooms = new Map();
 
 function getOrCreateRoom(roomId) {
@@ -29,11 +38,8 @@ io.on('connection', (socket) => {
     let currentUsername = null;
     let currentPeerId = null;
 
-    // -------- Вход в комнату --------
     socket.on('join-room', (roomId, peerId, username, password) => {
         if (!roomId || !peerId || !username) return;
-
-        // Ограничение длины и типа
         username = String(username).slice(0, 24).trim();
         if (!username) return;
 
@@ -43,7 +49,6 @@ io.on('connection', (socket) => {
 
         const room = getOrCreateRoom(roomId);
 
-        // Если такое имя уже занято — выгоняем старого
         if (room.users.has(username)) {
             const old = room.users.get(username);
             io.to(old.socketId).emit('you-are-kicked', 'Это имя уже используется');
@@ -53,16 +58,13 @@ io.on('connection', (socket) => {
         room.users.set(username, { socketId: socket.id, peerId });
         socket.join(roomId);
 
-        // Проверка на админа
         if (password === SECRET_ADMIN_PASSWORD) {
             room.admin = username;
             socket.emit('admin-verified');
         }
 
-        // Остальным сообщаем о новом пользователе (для звонков)
         socket.to(roomId).emit('user-connected', peerId, username);
 
-        // Новому пользователю сообщаем список уже присутствующих
         const peers = [];
         room.users.forEach((val, key) => {
             if (key !== username) {
@@ -71,11 +73,9 @@ io.on('connection', (socket) => {
         });
         socket.emit('room-state', peers, room.admin);
 
-        // Обновляем список у всех
         io.to(roomId).emit('update-user-list', getUserList(room), room.admin);
     });
 
-    // -------- Чат --------
     socket.on('send-chat-message', (roomId, author, text) => {
         const room = rooms.get(roomId);
         if (!room) return;
@@ -87,13 +87,11 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('receive-chat-message', safeAuthor, safeText, isAdminMsg);
     });
 
-    // -------- Старт трансляции (экран/камера) --------
     socket.on('start-video-stream', (roomId, streamType) => {
         const room = rooms.get(roomId);
         if (!room || !currentPeerId) return;
         if (streamType !== 'screen' && streamType !== 'camera') return;
 
-        // Отдаём инициатору список peerId, которым он должен позвонить
         const peers = [];
         room.users.forEach((val, key) => {
             if (key !== currentUsername) {
@@ -103,18 +101,15 @@ io.on('connection', (socket) => {
         socket.emit('call-peers-with-stream', streamType, peers);
     });
 
-    // -------- Стоп трансляции --------
     socket.on('stop-video-stream', (roomId, streamType) => {
         if (!currentPeerId) return;
         socket.to(roomId).emit('video-stream-stopped', currentPeerId, streamType);
     });
 
-    // -------- Подсветка говорящего --------
     socket.on('speech-state-change', (roomId, username, isSpeaking) => {
         io.to(roomId).emit('user-speech-updated', username, !!isSpeaking);
     });
 
-    // -------- Кик --------
     socket.on('kick-user-request', (roomId, targetUsername) => {
         const room = rooms.get(roomId);
         if (!room) return;
@@ -127,13 +122,11 @@ io.on('connection', (socket) => {
         }
     });
 
-    // -------- Отключение --------
     socket.on('disconnect', () => {
         if (!currentRoom || !currentUsername) return;
         const room = rooms.get(currentRoom);
         if (!room) return;
 
-        // Удаляем только если это тот же сокет (не перезаписан другим)
         const entry = room.users.get(currentUsername);
         if (entry && entry.socketId === socket.id) {
             room.users.delete(currentUsername);
@@ -151,7 +144,6 @@ io.on('connection', (socket) => {
             io.to(currentRoom).emit('user-speech-updated', currentUsername, false);
         }
 
-        // Удаляем пустую комнату
         if (room.users.size === 0) {
             rooms.delete(currentRoom);
         }
