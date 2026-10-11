@@ -15,24 +15,32 @@
         .btn-screen { background: #3ba55d; }
         .btn-camera { background: #9b59b6; }
         .btn-deafen { background: #e67e22; }
+        .btn-settings { background: #4f545c; }
 
         #status { margin-top: 20px; color: #b9bbbe; font-weight: bold; }
         .controls { margin-top: 20px; display: none; }
 
         .main-container { display: flex; max-width: 950px; margin: 20px auto; gap: 20px; justify-content: center; flex-wrap: wrap; }
-        .online-box { background: #202225; border-radius: 8px; padding: 15px; width: 200px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); height: 350px; display: flex; flex-direction: column; }
+        .online-box { background: #202225; border-radius: 8px; padding: 15px; width: 220px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); height: 350px; display: flex; flex-direction: column; }
         .online-title { font-size: 14px; text-transform: uppercase; color: #8e9297; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #2f3136; padding-bottom: 5px; }
         .user-list-container { flex-grow: 1; overflow-y: auto; }
 
-        .user-item { display: flex; align-items: center; margin: 8px 0; color: #dcddde; font-size: 15px; transition: all 0.2s ease; position: relative; cursor: pointer; }
-        .user-avatar { width: 12px; height: 12px; background: #4f545c; border-radius: 50%; margin-right: 10px; border: 2px solid transparent; transition: all 0.15s ease; }
+        .user-item { display: flex; align-items: center; margin: 8px 0; color: #dcddde; font-size: 15px; transition: all 0.2s ease; position: relative; cursor: pointer; border-radius: 4px; padding: 2px 4px; }
+        .user-item:hover { background: #2f3136; }
+        .user-avatar { width: 12px; height: 12px; background: #4f545c; border-radius: 50%; margin-right: 10px; border: 2px solid transparent; transition: all 0.15s ease; flex-shrink: 0; }
+        .user-name { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         .user-item.speaking .user-avatar { background: #3ba55d; border-color: #3ba55d; box-shadow: 0 0 8px #3ba55d; }
         .user-item.speaking { color: #fff; font-weight: bold; }
 
         .user-item.admin-role { color: #ED4245 !important; font-weight: bold; }
         .user-item.admin-role .user-avatar { background: #ED4245 !important; }
-        .crown { color: #FAA61A; margin-left: 5px; font-size: 13px; }
+        .crown { color: #FAA61A; margin-left: 3px; font-size: 13px; }
+
+        .user-vol-btn { background: transparent; border: none; color: #b9bbbe; cursor: pointer; font-size: 14px; padding: 2px 4px; border-radius: 3px; opacity: 0.5; transition: opacity 0.15s ease, background 0.15s ease; }
+        .user-item:hover .user-vol-btn { opacity: 1; }
+        .user-vol-btn:hover { background: #40444b; }
+        .user-vol-btn.modified { color: #FAA61A; opacity: 1; }
 
         .chat-box { background: #202225; border-radius: 8px; padding: 15px; width: 340px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); height: 350px; display: flex; flex-direction: column; text-align: left; }
         .chat-messages { flex-grow: 1; overflow-y: auto; background: #2f3136; border-radius: 4px; padding: 10px; margin-bottom: 10px; color: #dcddde; font-size: 14px; }
@@ -46,67 +54,17 @@
         .video-box { background: #202225; border-radius: 8px; padding: 15px; width: 100%; max-width: 900px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; margin-top: 10px; }
         .video-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 10px; }
 
-        .video-wrapper {
-            background: #000; border-radius: 6px; overflow: hidden;
-            position: relative; width: 280px; height: 210px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-        }
-        .video-wrapper video {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            display: block;
-            cursor: pointer;
-        }
-        .video-label {
-            position: absolute; bottom: 8px; left: 8px;
-            background: rgba(0,0,0,0.6);
-            padding: 2px 8px; border-radius: 4px;
-            font-size: 12px; font-weight: bold; color: #fff;
-            pointer-events: none;
-        }
-        .video-fullscreen-btn {
-            position: absolute; top: 6px; right: 6px;
-            background: rgba(0,0,0,0.6); color: #fff;
-            border: none; border-radius: 4px;
-            padding: 4px 8px; font-size: 14px; line-height: 1;
-            cursor: pointer; opacity: 0;
-            transition: opacity 0.15s ease, background 0.15s ease;
-        }
+        .video-wrapper { background: #000; border-radius: 6px; overflow: hidden; position: relative; width: 280px; height: 210px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+        .video-wrapper video { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
+        .video-label { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: #fff; pointer-events: none; }
+        .video-fullscreen-btn { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 4px; padding: 4px 8px; font-size: 14px; line-height: 1; cursor: pointer; opacity: 0; transition: opacity 0.15s ease, background 0.15s ease; }
         .video-wrapper:hover .video-fullscreen-btn { opacity: 1; }
         .video-fullscreen-btn:hover { background: rgba(0,0,0,0.9); }
 
-        /* Полноэкранный режим */
-        .video-wrapper:fullscreen,
-        .video-wrapper:-webkit-full-screen {
-            width: 100vw;
-            height: 100vh;
-            border-radius: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #000;
-        }
-        .video-wrapper:fullscreen video,
-        .video-wrapper:-webkit-full-screen video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-        .video-wrapper:fullscreen .video-label,
-        .video-wrapper:-webkit-full-screen .video-label {
-            font-size: 18px;
-            padding: 6px 14px;
-            bottom: 16px;
-            left: 16px;
-        }
-        .video-wrapper:fullscreen .video-fullscreen-btn,
-        .video-wrapper:-webkit-full-screen .video-fullscreen-btn {
-            opacity: 1;
-            font-size: 20px;
-            padding: 8px 14px;
-            top: 16px;
-            right: 16px;
-        }
+        .video-wrapper:fullscreen, .video-wrapper:-webkit-full-screen { width: 100vw; height: 100vh; border-radius: 0; display: flex; align-items: center; justify-content: center; background: #000; }
+        .video-wrapper:fullscreen video, .video-wrapper:-webkit-full-screen video { width: 100%; height: 100%; object-fit: contain; }
+        .video-wrapper:fullscreen .video-label, .video-wrapper:-webkit-full-screen .video-label { font-size: 18px; padding: 6px 14px; bottom: 16px; left: 16px; }
+        .video-wrapper:fullscreen .video-fullscreen-btn, .video-wrapper:-webkit-full-screen .video-fullscreen-btn { opacity: 1; font-size: 20px; padding: 8px 14px; top: 16px; right: 16px; }
 
         .login-box { background: #202225; border-radius: 8px; padding: 25px; max-width: 400px; margin: 30px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; }
         .login-input { background: #40444b; border: none; border-radius: 4px; padding: 12px; color: #fff; font-size: 16px; outline: none; width: 85%; text-align: center; margin-bottom: 15px; }
@@ -114,6 +72,102 @@
         .admin-menu { position: fixed; background: #18191c; border-radius: 4px; padding: 6px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: none; z-index: 9999; }
         .admin-menu-item { padding: 8px 20px; color: #ED4245; font-weight: bold; font-size: 14px; cursor: pointer; list-style: none; }
         .admin-menu-item:hover { background: #ED4245; color: white; }
+
+        /* ========== Модальное окно настроек ========== */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+            display: none; align-items: center; justify-content: center;
+            z-index: 10000; padding: 20px;
+        }
+        .modal-overlay.visible { display: flex; }
+        .modal {
+            background: #202225; border-radius: 10px; padding: 24px;
+            max-width: 480px; width: 100%; text-align: left;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal h2 { margin: 0 0 20px 0; font-size: 22px; display: flex; align-items: center; justify-content: space-between; }
+        .modal-close {
+            background: transparent; border: none; color: #b9bbbe;
+            font-size: 22px; cursor: pointer; line-height: 1;
+            padding: 4px 8px; border-radius: 4px;
+        }
+        .modal-close:hover { background: #40444b; color: #fff; }
+
+        .setting-group { margin-bottom: 24px; }
+        .setting-group h3 {
+            font-size: 13px; text-transform: uppercase; color: #8e9297;
+            margin: 0 0 12px 0; font-weight: bold; letter-spacing: 0.5px;
+        }
+        .setting-row {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; padding: 8px 0;
+        }
+        .setting-row label { color: #dcddde; font-size: 15px; }
+
+        .slider-wrap {
+            display: flex; align-items: center; gap: 10px;
+            flex-grow: 1; max-width: 260px;
+        }
+        .slider-wrap input[type="range"] {
+            flex-grow: 1; accent-color: #5865F2; cursor: pointer;
+        }
+        .slider-value {
+            color: #b9bbbe; font-size: 13px; font-weight: bold;
+            min-width: 48px; text-align: right;
+        }
+
+        .key-btn {
+            background: #40444b; color: #fff; border: 2px solid #4f545c;
+            border-radius: 5px; padding: 6px 14px; font-size: 14px;
+            font-family: monospace; font-weight: bold; cursor: pointer;
+            min-width: 90px; transition: all 0.15s ease;
+        }
+        .key-btn:hover { background: #4f545c; }
+        .key-btn.capturing {
+            background: #5865F2; border-color: #5865F2;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .hint-text { font-size: 12px; color: #72767d; margin-top: 4px; }
+
+        /* ========== Попап регулировки громкости пользователя ========== */
+        .user-vol-popover {
+            position: fixed; background: #18191c;
+            border-radius: 6px; padding: 12px 14px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            display: none; z-index: 9998;
+            min-width: 220px; text-align: left;
+            border: 1px solid #2f3136;
+        }
+        .user-vol-popover.visible { display: block; }
+        .user-vol-popover .popover-name {
+            font-size: 13px; font-weight: bold; color: #fff;
+            margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .user-vol-popover .popover-row {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .user-vol-popover input[type="range"] {
+            flex-grow: 1; accent-color: #3ba55d; cursor: pointer;
+        }
+        .user-vol-popover .popover-value {
+            font-size: 13px; color: #b9bbbe; font-weight: bold;
+            min-width: 42px; text-align: right;
+        }
+        .user-vol-popover .popover-hint {
+            font-size: 11px; color: #72767d; margin-top: 6px;
+        }
+
+        @media (max-width: 600px) {
+            .main-container { flex-direction: column; align-items: center; }
+            .online-box, .chat-box { width: 100%; max-width: 400px; }
+            .video-wrapper { width: 100%; max-width: 340px; height: 220px; }
+        }
     </style>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/peerjs.min.js"></script>
@@ -126,6 +180,65 @@
 
     <div class="admin-menu" id="ctx-menu">
         <li class="admin-menu-item" id="kick-action">🥾 Выгнать из канала</li>
+    </div>
+
+    <!-- Попап громкости пользователя -->
+    <div class="user-vol-popover" id="user-vol-popover">
+        <div class="popover-name" id="user-vol-name">—</div>
+        <div class="popover-row">
+            <input type="range" id="user-vol-slider" min="0" max="200" value="100">
+            <span class="popover-value" id="user-vol-value">100%</span>
+        </div>
+        <div class="popover-hint">0% — полная тишина · 200% — усиление</div>
+    </div>
+
+    <!-- Модальное окно настроек -->
+    <div class="modal-overlay" id="settings-overlay">
+        <div class="modal">
+            <h2>⚙️ Настройки <button class="modal-close" id="settings-close" type="button">✕</button></h2>
+
+            <div class="setting-group">
+                <h3>Микрофон</h3>
+                <div class="setting-row">
+                    <label>Громкость</label>
+                    <div class="slider-wrap">
+                        <input type="range" id="mic-volume" min="0" max="200" value="100">
+                        <span class="slider-value" id="mic-volume-value">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Push-to-talk</h3>
+                <div class="setting-row">
+                    <label>Активировать клавишей</label>
+                    <input type="checkbox" id="ptt-enabled" checked style="accent-color: #5865F2; width: 18px; height: 18px; cursor: pointer;">
+                </div>
+                <div class="setting-row">
+                    <label>Клавиша PTT</label>
+                    <button class="key-btn" id="key-ptt" type="button">V</button>
+                </div>
+                <div class="hint-text">Удерживай клавишу, чтобы говорить.</div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Горячие клавиши</h3>
+                <div class="setting-row">
+                    <label>Микрофон (Mute)</label>
+                    <button class="key-btn" id="key-mute" type="button">M</button>
+                </div>
+                <div class="setting-row">
+                    <label>Звук (Deafen)</label>
+                    <button class="key-btn" id="key-deafen" type="button">D</button>
+                </div>
+                <div class="hint-text">Клик по кнопке → нажми нужную клавишу. Escape — отмена.</div>
+            </div>
+
+            <div style="text-align: right; margin-top: 20px;">
+                <button class="btn" id="settings-reset" type="button" style="background: #4f545c;">Сбросить</button>
+                <button class="btn" id="settings-save" type="button" style="background: #5865F2;">Сохранить</button>
+            </div>
+        </div>
     </div>
 
     <div class="login-box" id="login-container">
@@ -162,6 +275,7 @@
         <button class="btn btn-deafen" id="deafen-btn" type="button">🎧 Выключить звук</button>
         <button class="btn btn-screen" id="screen-btn" type="button">📺 Включить экран</button>
         <button class="btn btn-camera" id="camera-btn" type="button">📷 Включить камеру</button>
+        <button class="btn btn-settings" id="settings-btn" type="button">⚙️ Настройки</button>
     </div>
 
     <div id="status">Статус: Инициализация связи...</div>
@@ -173,6 +287,7 @@ const muteBtn         = document.getElementById('mute-btn');
 const deafenBtn       = document.getElementById('deafen-btn');
 const screenBtn       = document.getElementById('screen-btn');
 const cameraBtn       = document.getElementById('camera-btn');
+const settingsBtn     = document.getElementById('settings-btn');
 const controlsBlock   = document.getElementById('controls-block');
 const userCountSpan   = document.getElementById('user-count');
 const userListDiv     = document.getElementById('user-list');
@@ -188,11 +303,80 @@ const passwordInput   = document.getElementById('password-input');
 const ctxMenu         = document.getElementById('ctx-menu');
 const kickAction      = document.getElementById('kick-action');
 
+const settingsOverlay = document.getElementById('settings-overlay');
+const settingsClose   = document.getElementById('settings-close');
+const settingsSave    = document.getElementById('settings-save');
+const settingsReset   = document.getElementById('settings-reset');
+const micVolumeInput  = document.getElementById('mic-volume');
+const micVolumeValue  = document.getElementById('mic-volume-value');
+const pttEnabledInput = document.getElementById('ptt-enabled');
+const keyPttBtn       = document.getElementById('key-ptt');
+const keyMuteBtn      = document.getElementById('key-mute');
+const keyDeafenBtn    = document.getElementById('key-deafen');
+
+const userVolPopover  = document.getElementById('user-vol-popover');
+const userVolName     = document.getElementById('user-vol-name');
+const userVolSlider   = document.getElementById('user-vol-slider');
+const userVolValue    = document.getElementById('user-vol-value');
+
+/* ================== Настройки (с сохранением) ================== */
+const DEFAULT_SETTINGS = {
+    micVolume: 100,
+    pttEnabled: true,
+    hotkeys: { ptt: 'KeyV', mute: 'KeyM', deafen: 'KeyD' }
+};
+
+function loadSettings() {
+    try {
+        const raw = localStorage.getItem('voiceSettings');
+        if (!raw) return structuredClone(DEFAULT_SETTINGS);
+        const parsed = JSON.parse(raw);
+        return {
+            micVolume: parsed.micVolume ?? DEFAULT_SETTINGS.micVolume,
+            pttEnabled: parsed.pttEnabled ?? DEFAULT_SETTINGS.pttEnabled,
+            hotkeys: { ...DEFAULT_SETTINGS.hotkeys, ...(parsed.hotkeys || {}) }
+        };
+    } catch (e) {
+        return structuredClone(DEFAULT_SETTINGS);
+    }
+}
+
+function saveSettings() {
+    try {
+        localStorage.setItem('voiceSettings', JSON.stringify(settings));
+    } catch (e) {}
+}
+
+let settings = loadSettings();
+
+// Громкость пользователей: username -> 0..200
+const userVolumes = new Map();
+function loadUserVolumes() {
+    try {
+        const raw = localStorage.getItem('userVolumes');
+        if (!raw) return;
+        const obj = JSON.parse(raw);
+        Object.keys(obj).forEach(name => userVolumes.set(name, obj[name]));
+    } catch (e) {}
+}
+function saveUserVolumes() {
+    try {
+        const obj = {};
+        userVolumes.forEach((v, k) => { obj[k] = v; });
+        localStorage.setItem('userVolumes', JSON.stringify(obj));
+    } catch (e) {}
+}
+loadUserVolumes();
+
 /* ================== Состояние ================== */
 const ROOM_ID = "main-friends-room";
 const socket  = io('/');
 
-let localStream       = null;
+let localStream        = null;   // «сырой» микрофон
+let processedMicStream = null;   // после GainNode — отправляется peer'ам
+let micGainNode        = null;
+let audioCtx           = null;
+
 let screenStream      = null;
 let cameraStream      = null;
 let isMuted           = false;
@@ -206,10 +390,122 @@ let selectedUserToKick = null;
 let audioLevelInterval = null;
 let hasJoined         = false;
 
-const peerToUser    = new Map();
+let pttActive = false;
+let wasMutedBeforePtt = false;
+
+let selectedUserForVolume = null;
+
+const peerToUser    = new Map(); // peerId -> username
 const audioCalls    = new Map();
 const videoCalls    = new Map();
-const audioElements = new Map();
+const remoteAudioNodes = new Map(); // peerId -> { src, gain, username }
+
+/* ================== Утилиты для горячих клавиш ================== */
+function keyName(code) {
+    if (!code) return '—';
+    if (code.startsWith('Key')) return code.slice(3);
+    if (code.startsWith('Digit')) return code.slice(5);
+    if (/^F\d{1,2}$/.test(code)) return code;
+    const map = {
+        Space: 'Пробел', Enter: 'Enter', Tab: 'Tab', Backspace: 'Backspace',
+        Escape: 'Esc', ShiftLeft: 'L-Shift', ShiftRight: 'R-Shift',
+        ControlLeft: 'L-Ctrl', ControlRight: 'R-Ctrl',
+        AltLeft: 'L-Alt', AltRight: 'R-Alt',
+        ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→',
+        Comma: ',', Period: '.', Slash: '/', Semicolon: ';', Quote: "'",
+        BracketLeft: '[', BracketRight: ']', Backslash: '\\',
+        Minus: '-', Equal: '=', Backquote: '`'
+    };
+    return map[code] || code;
+}
+
+function captureHotkey(btn, onCaptured) {
+    if (btn.classList.contains('capturing')) return;
+    const originalText = btn.textContent;
+    btn.textContent = '…';
+    btn.classList.add('capturing');
+
+    const handler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (e.code === 'Escape') {
+            btn.textContent = originalText;
+            btn.classList.remove('capturing');
+            document.removeEventListener('keydown', handler, true);
+            return;
+        }
+        if (['ShiftLeft','ShiftRight','ControlLeft','ControlRight','AltLeft','AltRight','MetaLeft','MetaRight'].includes(e.code)) {
+            return;
+        }
+
+        btn.textContent = keyName(e.code);
+        btn.classList.remove('capturing');
+        document.removeEventListener('keydown', handler, true);
+        onCaptured(e.code);
+    };
+    document.addEventListener('keydown', handler, true);
+}
+
+/* ================== Настройки: открытие / закрытие ================== */
+function openSettings() {
+    micVolumeInput.value = settings.micVolume;
+    micVolumeValue.textContent = settings.micVolume + '%';
+    pttEnabledInput.checked = settings.pttEnabled;
+    keyPttBtn.textContent = keyName(settings.hotkeys.ptt);
+    keyMuteBtn.textContent = keyName(settings.hotkeys.mute);
+    keyDeafenBtn.textContent = keyName(settings.hotkeys.deafen);
+    settingsOverlay.classList.add('visible');
+}
+
+function closeSettings() {
+    settingsOverlay.classList.remove('visible');
+}
+
+settingsBtn.addEventListener('click', openSettings);
+settingsClose.addEventListener('click', closeSettings);
+settingsOverlay.addEventListener('click', (e) => {
+    if (e.target === settingsOverlay) closeSettings();
+});
+
+micVolumeInput.addEventListener('input', () => {
+    micVolumeValue.textContent = micVolumeInput.value + '%';
+});
+pttEnabledInput.addEventListener('change', () => {});
+
+keyPttBtn.addEventListener('click', () => {
+    captureHotkey(keyPttBtn, (code) => { settings.hotkeys.ptt = code; });
+});
+keyMuteBtn.addEventListener('click', () => {
+    captureHotkey(keyMuteBtn, (code) => { settings.hotkeys.mute = code; });
+});
+keyDeafenBtn.addEventListener('click', () => {
+    captureHotkey(keyDeafenBtn, (code) => { settings.hotkeys.deafen = code; });
+});
+
+settingsSave.addEventListener('click', () => {
+    settings.micVolume = parseInt(micVolumeInput.value, 10) || 100;
+    settings.pttEnabled = pttEnabledInput.checked;
+
+    // Применить громкость микрофона
+    if (micGainNode) {
+        micGainNode.gain.value = settings.micVolume / 100;
+    }
+
+    saveSettings();
+    closeSettings();
+    statusDiv.textContent = "Настройки сохранены";
+    setTimeout(() => updateStatusText(), 1500);
+});
+
+settingsReset.addEventListener('click', () => {
+    if (!confirm("Сбросить все настройки?")) return;
+    settings = structuredClone(DEFAULT_SETTINGS);
+    saveSettings();
+    if (micGainNode) micGainNode.gain.value = 1;
+    openSettings();
+    updateStatusText();
+});
 
 /* ================== PeerJS ================== */
 const myPeer = new Peer(undefined, {
@@ -231,6 +527,12 @@ myPeer.on('error', err => {
     statusDiv.textContent = "Ошибка PeerJS: " + err.type;
 });
 
+myPeer.on('disconnected', () => {
+    statusDiv.textContent = "Потеряна связь с сервером, переподключаюсь...";
+    try { myPeer.reconnect(); } catch (e) {}
+});
+
+/* ================== Приём входящих вызовов ================== */
 myPeer.on('call', call => {
     const meta = call.metadata || {};
     const streamType = meta.type || 'audio';
@@ -251,24 +553,15 @@ myPeer.on('call', call => {
             videoCalls.delete(key);
         });
     } else {
-        try { call.answer(localStream || undefined); } catch (e) { console.warn(e); }
+        try { call.answer(processedMicStream || localStream || undefined); } catch (e) { console.warn(e); }
 
         call.on('stream', remoteStream => {
-            let audio = audioElements.get(call.peer);
-            if (!audio) {
-                audio = document.createElement('audio');
-                audio.autoplay = true;
-                audio.muted = isDeafened;
-                document.body.appendChild(audio);
-                audioElements.set(call.peer, audio);
-            }
-            audio.srcObject = remoteStream;
-            audio.play().catch(() => {});
+            const username = peerToUser.get(call.peer) || '???';
+            attachRemoteAudio(call.peer, username, remoteStream);
             audioCalls.set(call.peer, call);
         });
         call.on('close', () => {
-            const audio = audioElements.get(call.peer);
-            if (audio) { audio.remove(); audioElements.delete(call.peer); }
+            detachRemoteAudio(call.peer);
             audioCalls.delete(call.peer);
         });
     }
@@ -281,20 +574,35 @@ document.getElementById('join-btn').addEventListener('click', async () => {
     const chosenName = usernameInput.value.trim();
     const chosenPass = passwordInput.value.trim();
 
-    if (!chosenName) {
-        alert("Пожалуйста, введите ваше имя!");
+    if (!chosenName) { alert("Введите имя!"); return; }
+    if (!/^[A-Za-zА-Яа-яЁё0-9 _-]{2,15}$/.test(chosenName)) {
+        alert("Имя: 2–15 символов, буквы, цифры, пробел, _ и -");
         return;
     }
-    if (!myPeerId) {
-        alert("Подождите, идёт подключение к сети...");
-        return;
-    }
+    if (!myPeerId) { alert("Подождите, идёт подключение..."); return; }
 
     try {
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        localStream = await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+        });
     } catch (err) {
         statusDiv.textContent = "Ошибка микрофона: " + err.message;
         return;
+    }
+
+    // --- Готовим аудио-контекст и GainNode для микрофона ---
+    try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const src = audioCtx.createMediaStreamSource(localStream);
+        micGainNode = audioCtx.createGain();
+        micGainNode.gain.value = settings.micVolume / 100;
+        const dest = audioCtx.createMediaStreamDestination();
+        src.connect(micGainNode);
+        micGainNode.connect(dest);
+        processedMicStream = dest.stream;
+    } catch (e) {
+        console.warn('Не удалось создать AudioContext:', e);
+        processedMicStream = localStream;
     }
 
     hasJoined = true;
@@ -315,15 +623,23 @@ document.getElementById('join-btn').addEventListener('click', async () => {
 
 socket.on('user-connected', (newPeerId, newUsername) => {
     peerToUser.set(newPeerId, newUsername);
-    if (!localStream) return;
-    const call = myPeer.call(newPeerId, localStream);
+    if (!processedMicStream && !localStream) return;
+    const call = myPeer.call(newPeerId, processedMicStream || localStream);
     if (call) {
+        call.on('stream', remoteStream => {
+            attachRemoteAudio(newPeerId, newUsername, remoteStream);
+        });
+        call.on('close', () => {
+            detachRemoteAudio(newPeerId);
+        });
         audioCalls.set(newPeerId, call);
     }
 });
 
 socket.on('room-state', (peers) => {
-    peers.forEach(p => peerToUser.set(p.peerId, p.username));
+    peers.forEach(p => {
+        peerToUser.set(p.peerId, p.username);
+    });
 });
 
 socket.on('call-peers-with-stream', (streamType, peers) => {
@@ -380,6 +696,7 @@ socket.on('update-user-list', (users, adminName) => {
         item.appendChild(avatar);
 
         const nameSpan = document.createElement('span');
+        nameSpan.className = 'user-name';
         nameSpan.textContent = user;
         item.appendChild(nameSpan);
 
@@ -389,6 +706,23 @@ socket.on('update-user-list', (users, adminName) => {
             crown.className = 'crown';
             crown.textContent = '👑';
             item.appendChild(crown);
+        }
+
+        // --- Кнопка регулировки громкости пользователя ---
+        if (user !== myUsername) {
+            const volBtn = document.createElement('button');
+            volBtn.className = 'user-vol-btn';
+            volBtn.type = 'button';
+            volBtn.title = 'Громкость пользователя';
+            const vol = userVolumes.get(user) ?? 100;
+            volBtn.textContent = vol === 0 ? '🔇' : '🔊';
+            if (vol !== 100) volBtn.classList.add('modified');
+
+            volBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openUserVolumePopover(user, volBtn);
+            });
+            item.appendChild(volBtn);
         }
 
         item.addEventListener('contextmenu', (e) => {
@@ -428,9 +762,140 @@ socket.on('receive-chat-message', (author, text, isAdminMsg) => {
     msgLine.appendChild(textSpan);
     chatMessages.appendChild(msgLine);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    // Мигание заголовка при неактивной вкладке
+    if (document.hidden) {
+        startTitleFlash("💬 Новое сообщение");
+    }
 });
 
-/* ================== Управление микрофоном / звуком ================== */
+/* ================== Регулировка громкости пользователей ================== */
+function openUserVolumePopover(username, anchorEl) {
+    selectedUserForVolume = username;
+    userVolName.textContent = username;
+
+    const vol = userVolumes.get(username) ?? 100;
+    userVolSlider.value = vol;
+    userVolValue.textContent = vol + '%';
+
+    // Позиционируем около кнопки
+    const rect = anchorEl.getBoundingClientRect();
+    userVolPopover.classList.add('visible');
+
+    const popRect = userVolPopover.getBoundingClientRect();
+    let left = rect.right + 8;
+    let top  = rect.top - 4;
+    if (left + popRect.width > window.innerWidth - 10) {
+        left = rect.left - popRect.width - 8;
+    }
+    if (top + popRect.height > window.innerHeight - 10) {
+        top = window.innerHeight - popRect.height - 10;
+    }
+    if (top < 10) top = 10;
+
+    userVolPopover.style.left = left + 'px';
+    userVolPopover.style.top  = top  + 'px';
+}
+
+function closeUserVolumePopover() {
+    userVolPopover.classList.remove('visible');
+    selectedUserForVolume = null;
+}
+
+userVolSlider.addEventListener('input', () => {
+    if (!selectedUserForVolume) return;
+    const vol = parseInt(userVolSlider.value, 10);
+    userVolValue.textContent = vol + '%';
+    setUserVolume(selectedUserForVolume, vol);
+});
+
+document.addEventListener('click', (e) => {
+    // Клик вне попапа — закрываем
+    if (!userVolPopover.contains(e.target)) {
+        const anyVolBtn = e.target.closest && e.target.closest('.user-vol-btn');
+        if (!anyVolBtn) closeUserVolumePopover();
+    }
+    // Скрываем админ-меню
+    if (!e.target.closest || !e.target.closest('#ctx-menu')) {
+        ctxMenu.style.display = 'none';
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && userVolPopover.classList.contains('visible')) {
+        closeUserVolumePopover();
+    }
+});
+
+function setUserVolume(username, vol) {
+    userVolumes.set(username, vol);
+    saveUserVolumes();
+
+    // Применяем к существующим audio nodes
+    remoteAudioNodes.forEach((node, peerId) => {
+        if (node.username === username) {
+            const target = isDeafened ? 0 : vol / 100;
+            node.gain.gain.value = target;
+        }
+    });
+
+    // Обновляем иконку
+    const item = userListDiv.querySelector(`.user-item[data-username="${CSS.escape(username)}"]`);
+    if (item) {
+        const btn = item.querySelector('.user-vol-btn');
+        if (btn) {
+            btn.textContent = vol === 0 ? '🔇' : '🔊';
+            btn.classList.toggle('modified', vol !== 100);
+        }
+    }
+}
+
+/* ================== Аудио входящих пользователей ================== */
+async function ensureAudioCtx() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        try { await audioCtx.resume(); } catch (e) {}
+    }
+    return audioCtx;
+}
+
+async function attachRemoteAudio(peerId, username, remoteStream) {
+    const ctx = await ensureAudioCtx();
+
+    let node = remoteAudioNodes.get(peerId);
+    if (!node) {
+        const src = ctx.createMediaStreamSource(remoteStream);
+        const gain = ctx.createGain();
+        src.connect(gain);
+        gain.connect(ctx.destination);
+        node = { src, gain, username };
+        remoteAudioNodes.set(peerId, node);
+    } else {
+        node.username = username;
+    }
+
+    const vol = userVolumes.get(username) ?? 100;
+    node.gain.gain.value = isDeafened ? 0 : vol / 100;
+}
+
+function detachRemoteAudio(peerId) {
+    const node = remoteAudioNodes.get(peerId);
+    if (!node) return;
+    try { node.src.disconnect(); } catch (e) {}
+    try { node.gain.disconnect(); } catch (e) {}
+    remoteAudioNodes.delete(peerId);
+}
+
+function applyAllRemoteVolumes() {
+    remoteAudioNodes.forEach(node => {
+        const vol = userVolumes.get(node.username) ?? 100;
+        node.gain.gain.value = isDeafened ? 0 : vol / 100;
+    });
+}
+
+/* ================== Микрофон / Deafen ================== */
 function applyMicState() {
     const shouldBeEnabled = !isMuted && !isDeafened;
     if (localStream) {
@@ -471,7 +936,7 @@ function updateStatusText() {
     if (isDeafened && isMuted) {
         statusDiv.textContent = "Режим тишины: вас не слышно, вы никого не слышите";
     } else if (isDeafened) {
-        statusDiv.textContent = "Режим тишины: вы никого не слышите (микрофон тоже отключён)";
+        statusDiv.textContent = "Режим тишины: вы никого не слышите";
     } else if (isMuted) {
         statusDiv.textContent = "Микрофон выключен";
     } else {
@@ -480,32 +945,72 @@ function updateStatusText() {
 }
 
 muteBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+    e.preventDefault(); e.stopPropagation();
     isMuted = !isMuted;
-    try { applyMicState(); } catch (err) { console.error('applyMicState:', err); }
+    try { applyMicState(); } catch (err) {}
     renderControls();
     updateStatusText();
-
-    console.log('[Mute] isMuted =', isMuted, '| isDeafened =', isDeafened,
-                '| track.enabled =', localStream ? localStream.getAudioTracks()[0].enabled : '—');
 });
 
 deafenBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+    e.preventDefault(); e.stopPropagation();
     isDeafened = !isDeafened;
-    try { applyMicState(); } catch (err) { console.error('applyMicState:', err); }
-
-    audioElements.forEach(audio => { audio.muted = isDeafened; });
-
+    try { applyMicState(); } catch (err) {}
+    applyAllRemoteVolumes();
     renderControls();
     updateStatusText();
+});
 
-    console.log('[Deafen] isDeafened =', isDeafened,
-                '| audio elements =', audioElements.size);
+/* ================== Push-to-talk и горячие клавиши ================== */
+document.addEventListener('keydown', (e) => {
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (e.repeat) return;
+    if (!hasJoined) return;
+
+    if (e.code === settings.hotkeys.mute && !isDeafened) {
+        muteBtn.click();
+        e.preventDefault();
+        return;
+    }
+    if (e.code === settings.hotkeys.deafen) {
+        deafenBtn.click();
+        e.preventDefault();
+        return;
+    }
+    if (e.code === settings.hotkeys.ptt && settings.pttEnabled) {
+        if (!pttActive) {
+            pttActive = true;
+            wasMutedBeforePtt = isMuted;
+            if (isMuted) {
+                isMuted = false;
+                applyMicState();
+                renderControls();
+                updateStatusText();
+            }
+        }
+        e.preventDefault();
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    if (!hasJoined) return;
+    if (e.code !== settings.hotkeys.ptt) return;
+    if (!pttActive) return;
+    pttActive = false;
+    if (wasMutedBeforePtt) {
+        isMuted = true;
+        applyMicState();
+        renderControls();
+        updateStatusText();
+    }
+});
+
+// Возобновляем AudioContext после любых кликов (важно для Chrome/Safari)
+document.addEventListener('click', () => {
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+    }
 });
 
 /* ================== Трансляция экрана ================== */
@@ -513,41 +1018,26 @@ screenBtn.addEventListener('click', async () => {
     if (!isSharingScreen) {
         if (isSharingCamera) stopCameraShare();
         try {
-            const stream = await navigator.mediaDevices.getDisplayMedia({
-                video: true,
-                audio: false
-            });
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
             screenStream = stream;
             isSharingScreen = true;
             screenBtn.textContent = "🛑 Выключить экран";
             screenBtn.style.background = "#ED4245";
-
             addVideoElement(myPeerId + "-screen", screenStream, "Ваш экран", true);
-
             socket.emit('start-video-stream', ROOM_ID, "screen");
-
-            screenStream.getVideoTracks()[0].addEventListener('ended', () => {
-                stopScreenShare();
-            });
-        } catch (err) {
-            console.warn(err);
-        }
+            screenStream.getVideoTracks()[0].addEventListener('ended', () => stopScreenShare());
+        } catch (err) { console.warn(err); }
     } else {
         stopScreenShare();
     }
 });
 
 function stopScreenShare() {
-    if (screenStream) {
-        screenStream.getTracks().forEach(t => t.stop());
-        screenStream = null;
-    }
+    if (screenStream) { screenStream.getTracks().forEach(t => t.stop()); screenStream = null; }
     isSharingScreen = false;
     screenBtn.textContent = "📺 Включить экран";
     screenBtn.style.background = "#3ba55d";
-
     removeVideoElement(myPeerId + "-screen");
-
     Array.from(videoCalls.keys()).forEach(key => {
         if (key.endsWith('-screen')) {
             const call = videoCalls.get(key);
@@ -555,7 +1045,6 @@ function stopScreenShare() {
             videoCalls.delete(key);
         }
     });
-
     socket.emit('stop-video-stream', ROOM_ID, "screen");
 }
 
@@ -564,41 +1053,26 @@ cameraBtn.addEventListener('click', async () => {
     if (!isSharingCamera) {
         if (isSharingScreen) stopScreenShare();
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: true,
-                audio: false
-            });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
             cameraStream = stream;
             isSharingCamera = true;
             cameraBtn.textContent = "🛑 Выключить камеру";
             cameraBtn.style.background = "#ED4245";
-
             addVideoElement(myPeerId + "-camera", cameraStream, "Вы (Камера)", true);
-
             socket.emit('start-video-stream', ROOM_ID, "camera");
-
-            cameraStream.getVideoTracks()[0].addEventListener('ended', () => {
-                stopCameraShare();
-            });
-        } catch (err) {
-            alert("Камера не найдена или доступ запрещён");
-        }
+            cameraStream.getVideoTracks()[0].addEventListener('ended', () => stopCameraShare());
+        } catch (err) { alert("Камера не найдена или доступ запрещён"); }
     } else {
         stopCameraShare();
     }
 });
 
 function stopCameraShare() {
-    if (cameraStream) {
-        cameraStream.getTracks().forEach(t => t.stop());
-        cameraStream = null;
-    }
+    if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
     isSharingCamera = false;
     cameraBtn.textContent = "📷 Включить камеру";
     cameraBtn.style.background = "#9b59b6";
-
     removeVideoElement(myPeerId + "-camera");
-
     Array.from(videoCalls.keys()).forEach(key => {
         if (key.endsWith('-camera')) {
             const call = videoCalls.get(key);
@@ -606,7 +1080,6 @@ function stopCameraShare() {
             videoCalls.delete(key);
         }
     });
-
     socket.emit('stop-video-stream', ROOM_ID, "camera");
 }
 
@@ -614,9 +1087,9 @@ function stopCameraShare() {
 function startAudioAnalyser(stream) {
     try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        const audioContext = new AudioCtx();
-        const analyser = audioContext.createAnalyser();
-        const source = audioContext.createMediaStreamSource(stream);
+        const ctx = audioCtx || new AudioCtx();
+        const analyser = ctx.createAnalyser();
+        const source = ctx.createMediaStreamSource(stream);
         source.connect(analyser);
         analyser.fftSize = 512;
 
@@ -636,9 +1109,7 @@ function startAudioAnalyser(stream) {
                 socket.emit('speech-state-change', ROOM_ID, myUsername, isSpeaking);
             }
         }, 150);
-    } catch (e) {
-        console.warn('AudioContext error:', e);
-    }
+    } catch (e) { console.warn('AudioContext error:', e); }
 }
 
 /* ================== Чат ================== */
@@ -649,13 +1120,30 @@ function sendMessage() {
     chatInput.value = "";
 }
 chatSendBtn.addEventListener('click', sendMessage);
-chatInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') sendMessage();
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+
+/* ================== Мигание заголовка ================== */
+let titleFlashInterval = null;
+let originalTitle = document.title;
+function startTitleFlash(msg) {
+    if (titleFlashInterval) return;
+    let on = false;
+    titleFlashInterval = setInterval(() => {
+        document.title = on ? msg : originalTitle;
+        on = !on;
+    }, 1000);
+}
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+        if (titleFlashInterval) {
+            clearInterval(titleFlashInterval);
+            titleFlashInterval = null;
+        }
+        document.title = originalTitle;
+    }
 });
 
-/* ================== Контекстное меню ================== */
-document.addEventListener('click', () => { ctxMenu.style.display = 'none'; });
-
+/* ================== Контекстное меню (кик) ================== */
 kickAction.addEventListener('click', (e) => {
     e.stopPropagation();
     if (selectedUserToKick) {
@@ -667,27 +1155,20 @@ kickAction.addEventListener('click', (e) => {
 
 /* ================== Полноэкранный режим ================== */
 function isFullscreen(el) {
-    return document.fullscreenElement === el ||
-           document.webkitFullscreenElement === el;
+    return document.fullscreenElement === el || document.webkitFullscreenElement === el;
 }
-
 function requestFullscreen(el) {
     if (el.requestFullscreen) return el.requestFullscreen();
     if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
     return Promise.reject(new Error('Fullscreen API не поддерживается'));
 }
-
 function exitFullscreen() {
     if (document.exitFullscreen) return document.exitFullscreen();
     if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
 }
-
 function toggleFullscreen(el) {
-    if (isFullscreen(el)) {
-        exitFullscreen();
-    } else {
-        requestFullscreen(el).catch(err => console.warn('Fullscreen error:', err));
-    }
+    if (isFullscreen(el)) exitFullscreen();
+    else requestFullscreen(el).catch(err => console.warn('Fullscreen error:', err));
 }
 
 /* ================== Помощники для видео ================== */
@@ -705,9 +1186,7 @@ function addVideoElement(id, stream, labelText, muted = false) {
         video.playsInline = true;
         video.muted = muted;
         video.srcObject = stream;
-        // Двойной клик — развернуть / свернуть
         video.addEventListener('dblclick', () => toggleFullscreen(wrapper));
-        // Клик по одиночному нажатию ничего не делает — чтобы не мешало
 
         const label = document.createElement('div');
         label.className = 'video-label';
@@ -736,15 +1215,9 @@ function addVideoElement(id, stream, labelText, muted = false) {
 function removeVideoElement(id) {
     const wrapper = document.getElementById(id);
     if (wrapper) {
-        // Если элемент был в полноэкранном режиме — выходим
-        if (isFullscreen(wrapper)) {
-            exitFullscreen().catch(() => {});
-        }
+        if (isFullscreen(wrapper)) exitFullscreen().catch(() => {});
         const video = wrapper.querySelector('video');
-        if (video) {
-            video.pause();
-            video.srcObject = null;
-        }
+        if (video) { video.pause(); video.srcObject = null; }
         wrapper.remove();
     }
     if (videoGrid.children.length === 0) {
