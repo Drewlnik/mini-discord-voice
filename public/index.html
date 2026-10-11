@@ -5,20 +5,16 @@
     <title>Наш Голосовой Чат</title>
     <style>
         body { font-family: sans-serif; background: #2f3136; color: #fff; padding: 20px; text-align: center; }
-        .btn { background: #5865F2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px; font-weight: bold; transition: transform 0.05s ease, background 0.15s ease; }
-        .btn:hover { filter: brightness(1.1); }
+        .btn { color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px; font-weight: bold; transition: transform 0.05s ease, filter 0.15s ease; user-select: none; }
+        .btn:hover { filter: brightness(1.12); }
         .btn:active { transform: scale(0.96); }
-        .btn:disabled,
-        .btn.disabled { cursor: not-allowed !important; opacity: 0.5 !important; filter: grayscale(0.4); }
+        .btn.blocked { opacity: 0.6; }
+        .btn.blocked:hover { filter: none; }
 
         .btn-mute { background: #ED4245; }
-        .btn-mute:hover { background: #C03B3E; }
         .btn-screen { background: #3ba55d; }
-        .btn-screen:hover { background: #2e854b; }
         .btn-camera { background: #9b59b6; }
-        .btn-camera:hover { background: #8e44ad; }
         .btn-deafen { background: #e67e22; }
-        .btn-deafen:hover { background: #d35400; }
 
         #status { margin-top: 20px; color: #b9bbbe; font-weight: bold; }
         .controls { margin-top: 20px; display: none; }
@@ -103,10 +99,10 @@
     </div>
 
     <div class="controls" id="controls-block">
-        <button class="btn btn-mute" id="mute-btn">🔇 Выключить микрофон</button>
-        <button class="btn btn-deafen" id="deafen-btn">🎧 Выключить звук</button>
-        <button class="btn btn-screen" id="screen-btn">📺 Включить экран</button>
-        <button class="btn btn-camera" id="camera-btn">📷 Включить камеру</button>
+        <button class="btn btn-mute" id="mute-btn" type="button">🔇 Выключить микрофон</button>
+        <button class="btn btn-deafen" id="deafen-btn" type="button">🎧 Выключить звук</button>
+        <button class="btn btn-screen" id="screen-btn" type="button">📺 Включить экран</button>
+        <button class="btn btn-camera" id="camera-btn" type="button">📷 Включить камеру</button>
     </div>
 
     <div id="status">Статус: Инициализация связи...</div>
@@ -149,11 +145,12 @@ let myUsername        = "";
 let amIAdmin          = false;
 let selectedUserToKick = null;
 let audioLevelInterval = null;
+let hasJoined         = false;
 
-const peerToUser    = new Map(); // peerId -> username
-const audioCalls    = new Map(); // peerId -> call
-const videoCalls    = new Map(); // "peerId-type" -> call
-const audioElements = new Map(); // peerId -> audio element
+const peerToUser    = new Map();
+const audioCalls    = new Map();
+const videoCalls    = new Map();
+const audioElements = new Map();
 
 /* ================== PeerJS ================== */
 const myPeer = new Peer(undefined, {
@@ -175,7 +172,6 @@ myPeer.on('error', err => {
     statusDiv.textContent = "Ошибка PeerJS: " + err.type;
 });
 
-// Универсальный приём входящих вызовов
 myPeer.on('call', call => {
     const meta = call.metadata || {};
     const streamType = meta.type || 'audio';
@@ -221,6 +217,8 @@ myPeer.on('call', call => {
 
 /* ================== Вход в комнату ================== */
 document.getElementById('join-btn').addEventListener('click', async () => {
+    if (hasJoined) return;
+
     const chosenName = usernameInput.value.trim();
     const chosenPass = passwordInput.value.trim();
 
@@ -240,8 +238,8 @@ document.getElementById('join-btn').addEventListener('click', async () => {
         return;
     }
 
+    hasJoined = true;
     myUsername = chosenName;
-    statusDiv.textContent = "Вы подключены как: " + myUsername;
 
     loginContainer.style.display = 'none';
     appContainer.style.display = 'flex';
@@ -250,10 +248,8 @@ document.getElementById('join-btn').addEventListener('click', async () => {
     socket.emit('join-room', ROOM_ID, myPeerId, myUsername, chosenPass);
 
     startAudioAnalyser(localStream);
-
-    // Первичная отрисовка кнопок
-    renderMuteButton();
-    renderDeafenButton();
+    renderControls();
+    updateStatusText();
 });
 
 /* ================== Socket.IO события ================== */
@@ -267,7 +263,7 @@ socket.on('user-connected', (newPeerId, newUsername) => {
     }
 });
 
-socket.on('room-state', (peers, adminName) => {
+socket.on('room-state', (peers) => {
     peers.forEach(p => peerToUser.set(p.peerId, p.username));
 });
 
@@ -287,7 +283,7 @@ socket.on('call-peers-with-stream', (streamType, peers) => {
     });
 });
 
-socket.on('video-stream-started', (peerId, username, streamType) => {
+socket.on('video-stream-started', (peerId, username) => {
     peerToUser.set(peerId, username);
 });
 
@@ -376,33 +372,43 @@ socket.on('receive-chat-message', (author, text, isAdminMsg) => {
 });
 
 /* ================== Управление микрофоном / звуком ================== */
-function updateMicTrack() {
+
+// Применяет фактическое состояние микрофона к MediaStreamTrack
+function applyMicState() {
     const shouldBeEnabled = !isMuted && !isDeafened;
     if (localStream) {
         localStream.getAudioTracks().forEach(track => {
             track.enabled = shouldBeEnabled;
         });
     }
-    if (!shouldBeEnabled) {
-        socket.emit('speech-state-change', ROOM_ID, myUsername, false);
+    // Если микрофон выключен — принудительно гасим индикатор
+    if (!shouldBeEnabled && hasJoined) {
+        try {
+            socket.emit('speech-state-change', ROOM_ID, myUsername, false);
+        } catch (e) { /* игнорируем сетевые ошибки */ }
     }
 }
 
-// Отрисовка кнопки Mute в зависимости от режима
-function renderMuteButton() {
+// Единая отрисовка внешнего вида кнопок
+function renderControls() {
+    // --- Кнопка Mute ---
+    // ВАЖНО: не ставим disabled — иначе клик не сработает.
+    // Просто меняем текст и цвет, и помечаем "заблокировано" классом.
+    muteBtn.classList.toggle('blocked', isDeafened);
+
     if (isDeafened) {
-        muteBtn.textContent = "🔇 Микрофон заблокирован";
+        // Когда включён Deafen — микрофон всё равно выключен.
+        // Показываем намерение пользователя (isMuted) в тексте.
+        muteBtn.textContent = isMuted
+            ? "🔊 Включить микрофон (Deafen)"
+            : "🔇 Микрофон выключен (Deafen)";
         muteBtn.style.background = "#4f545c";
-        muteBtn.disabled = true;
     } else {
-        muteBtn.disabled = false;
         muteBtn.textContent = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
         muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
     }
-}
 
-// Отрисовка кнопки Deafen
-function renderDeafenButton() {
+    // --- Кнопка Deafen ---
     if (isDeafened) {
         deafenBtn.textContent = "🎧 Включить звук";
         deafenBtn.style.background = "#3BA55D";
@@ -412,39 +418,52 @@ function renderDeafenButton() {
     }
 }
 
-// --- Mute ---
-muteBtn.addEventListener('click', () => {
-    try {
-        if (isDeafened) return;
-        isMuted = !isMuted;
-        updateMicTrack();
-        renderMuteButton();
-
-        statusDiv.textContent = isMuted
-            ? "Микрофон выключен"
-            : "Вы подключены как: " + myUsername;
-    } catch (e) {
-        console.error('Ошибка в обработчике Mute:', e);
+// Обновление строки статуса
+function updateStatusText() {
+    if (isDeafened && isMuted) {
+        statusDiv.textContent = "Режим тишины: вас не слышно, вы никого не слышите";
+    } else if (isDeafened) {
+        statusDiv.textContent = "Режим тишины: вы никого не слышите (микрофон тоже отключён)";
+    } else if (isMuted) {
+        statusDiv.textContent = "Микрофон выключен";
+    } else {
+        statusDiv.textContent = "Вы подключены как: " + myUsername;
     }
+}
+
+// --- Mute ---
+muteBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Даже если Deafen включён — разрешаем менять "намерение" микрофона.
+    isMuted = !isMuted;
+
+    try { applyMicState(); } catch (err) { console.error('applyMicState:', err); }
+    renderControls();
+    updateStatusText();
+
+    console.log('[Mute] isMuted =', isMuted, '| isDeafened =', isDeafened,
+                '| track.enabled =', localStream ? localStream.getAudioTracks()[0].enabled : '—');
 });
 
 // --- Deafen ---
-deafenBtn.addEventListener('click', () => {
-    try {
-        isDeafened = !isDeafened;
-        updateMicTrack();
+deafenBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-        audioElements.forEach(audio => { audio.muted = isDeafened; });
+    isDeafened = !isDeafened;
 
-        renderMuteButton();
-        renderDeafenButton();
+    try { applyMicState(); } catch (err) { console.error('applyMicState:', err); }
 
-        statusDiv.textContent = isDeafened
-            ? "Режим тишины (вы никого не слышите и вас не слышно)"
-            : (isMuted ? "Микрофон выключен" : "Вы подключены как: " + myUsername);
-    } catch (e) {
-        console.error('Ошибка в обработчике Deafen:', e);
-    }
+    // Глушим / включаем все входящие аудио
+    audioElements.forEach(audio => { audio.muted = isDeafened; });
+
+    renderControls();
+    updateStatusText();
+
+    console.log('[Deafen] isDeafened =', isDeafened,
+                '| audio elements =', audioElements.size);
 });
 
 /* ================== Трансляция экрана ================== */
