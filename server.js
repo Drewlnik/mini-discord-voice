@@ -7,88 +7,156 @@ const io = require('socket.io')(server, {
 
 app.use(express.static('public'));
 
-const roomUsers = {};
-const roomAdmin = {}; 
-const userSocketMap = {}; 
-
-// Ваш секретный пароль администратора
+// Секретный пароль администратора
 const SECRET_ADMIN_PASSWORD = "48103650550";
+
+// rooms: roomId -> { users: Map<username, { socketId, peerId }>, admin: username|null }
+const rooms = new Map();
+
+function getOrCreateRoom(roomId) {
+    if (!rooms.has(roomId)) {
+        rooms.set(roomId, { users: new Map(), admin: null });
+    }
+    return rooms.get(roomId);
+}
+
+function getUserList(room) {
+    return Array.from(room.users.keys());
+}
 
 io.on('connection', (socket) => {
     let currentRoom = null;
     let currentUsername = null;
+    let currentPeerId = null;
 
-    socket.on('join-room', (roomId, userId, customUsername, inputPassword) => {
+    // -------- Вход в комнату --------
+    socket.on('join-room', (roomId, peerId, username, password) => {
+        if (!roomId || !peerId || !username) return;
+
+        // Ограничение длины и типа
+        username = String(username).slice(0, 24).trim();
+        if (!username) return;
+
         currentRoom = roomId;
-        currentUsername = customUsername;
-        userSocketMap[currentUsername] = socket.id; 
+        currentUsername = username;
+        currentPeerId = peerId;
 
+        const room = getOrCreateRoom(roomId);
+
+        // Если такое имя уже занято — выгоняем старого
+        if (room.users.has(username)) {
+            const old = room.users.get(username);
+            io.to(old.socketId).emit('you-are-kicked', 'Это имя уже используется');
+            room.users.delete(username);
+        }
+
+        room.users.set(username, { socketId: socket.id, peerId });
         socket.join(roomId);
-        
-        if (!roomUsers[roomId]) {
-            roomUsers[roomId] = [];
-        }
-        
-        if (!roomUsers[roomId].includes(currentUsername)) {
-            roomUsers[roomId].push(currentUsername);
+
+        // Проверка на админа
+        if (password === SECRET_ADMIN_PASSWORD) {
+            room.admin = username;
+            socket.emit('admin-verified');
         }
 
-        if (inputPassword === SECRET_ADMIN_PASSWORD) {
-            roomAdmin[roomId] = currentUsername; 
-            socket.emit('admin-verified'); 
-        }
+        // Остальным сообщаем о новом пользователе (для звонков)
+        socket.to(roomId).emit('user-connected', peerId, username);
 
-        socket.to(roomId).emit('user-connected', userId);
-        io.to(roomId).emit('update-user-list', roomUsers[roomId], roomAdmin[roomId] || null);
+        // Новому пользователю сообщаем список уже присутствующих
+        const peers = [];
+        room.users.forEach((val, key) => {
+            if (key !== username) {
+                peers.push({ peerId: val.peerId, username: key });
+            }
+        });
+        socket.emit('room-state', peers, room.admin);
+
+        // Обновляем список у всех
+        io.to(roomId).emit('update-user-list', getUserList(room), room.admin);
     });
 
+    // -------- Чат --------
     socket.on('send-chat-message', (roomId, author, text) => {
-        const isAdminMsg = (roomAdmin[roomId] === author);
-        io.to(roomId).emit('receive-chat-message', author, text, isAdminMsg);
+        const room = rooms.get(roomId);
+        if (!room) return;
+        if (typeof text !== 'string') return;
+
+        const safeText = text.slice(0, 2000);
+        const safeAuthor = String(author).slice(0, 24);
+        const isAdminMsg = (room.admin === safeAuthor);
+        io.to(roomId).emit('receive-chat-message', safeAuthor, safeText, isAdminMsg);
     });
 
-    // Универсальный приём начала трансляции (камера или экран)
-    socket.on('start-video-stream', (roomId, userId, username, streamType) => {
-        socket.to(roomId).emit('video-stream-started', userId, username, streamType);
-    });
+    // -------- Старт трансляции (экран/камера) --------
+    socket.on('start-video-stream', (roomId, streamType) => {
+        const room = rooms.get(roomId);
+        if (!room || !currentPeerId) return;
+        if (streamType !== 'screen' && streamType !== 'camera') return;
 
-    // Универсальный приём остановки трансляции
-    socket.on('stop-video-stream', (roomId, streamType) => {
-        socket.to(roomId).emit('video-stream-stopped', socket.id, streamType);
-    });
-
-    socket.on('speech-state-change', (roomId, username, isSpeaking) => {
-        io.to(roomId).emit('user-speech-updated', username, isSpeaking);
-    });
-
-    socket.on('kick-user-request', (roomId, targetUsername) => {
-        if (roomAdmin[roomId] === currentUsername) {
-            const targetSocketId = userSocketMap[targetUsername];
-            if (targetSocketId) {
-                io.to(targetSocketId).emit('you-are-kicked'); 
+        // Отдаём инициатору список peerId, которым он должен позвонить
+        const peers = [];
+        room.users.forEach((val, key) => {
+            if (key !== currentUsername) {
+                peers.push({ peerId: val.peerId, username: key });
             }
+        });
+        socket.emit('call-peers-with-stream', streamType, peers);
+    });
+
+    // -------- Стоп трансляции --------
+    socket.on('stop-video-stream', (roomId, streamType) => {
+        if (!currentPeerId) return;
+        socket.to(roomId).emit('video-stream-stopped', currentPeerId, streamType);
+    });
+
+    // -------- Подсветка говорящего --------
+    socket.on('speech-state-change', (roomId, username, isSpeaking) => {
+        io.to(roomId).emit('user-speech-updated', username, !!isSpeaking);
+    });
+
+    // -------- Кик --------
+    socket.on('kick-user-request', (roomId, targetUsername) => {
+        const room = rooms.get(roomId);
+        if (!room) return;
+        if (room.admin !== currentUsername) return;
+        if (targetUsername === currentUsername) return;
+
+        const target = room.users.get(targetUsername);
+        if (target) {
+            io.to(target.socketId).emit('you-are-kicked', 'Вы были исключены администратором');
         }
     });
 
+    // -------- Отключение --------
     socket.on('disconnect', () => {
-        if (currentRoom && currentUsername && roomUsers[currentRoom]) {
-            roomUsers[currentRoom] = roomUsers[currentRoom].filter(user => user !== currentUsername);
-            
-            if (roomAdmin[currentRoom] === currentUsername) {
-                roomAdmin[currentRoom] = null;
+        if (!currentRoom || !currentUsername) return;
+        const room = rooms.get(currentRoom);
+        if (!room) return;
+
+        // Удаляем только если это тот же сокет (не перезаписан другим)
+        const entry = room.users.get(currentUsername);
+        if (entry && entry.socketId === socket.id) {
+            room.users.delete(currentUsername);
+
+            if (room.admin === currentUsername) {
+                room.admin = null;
             }
-            
-            delete userSocketMap[currentUsername];
-            
-            io.to(currentRoom).emit('update-user-list', roomUsers[currentRoom], roomAdmin[currentRoom] || null);
-            
-            // Отключаем все стримы пользователя при его выходе из сети
-            socket.to(currentRoom).emit('video-stream-stopped', socket.id, "screen");
-            socket.to(currentRoom).emit('video-stream-stopped', socket.id, "camera");
+
+            io.to(currentRoom).emit('update-user-list', getUserList(room), room.admin);
+
+            if (currentPeerId) {
+                socket.to(currentRoom).emit('video-stream-stopped', currentPeerId, 'screen');
+                socket.to(currentRoom).emit('video-stream-stopped', currentPeerId, 'camera');
+            }
             io.to(currentRoom).emit('user-speech-updated', currentUsername, false);
+        }
+
+        // Удаляем пустую комнату
+        if (room.users.size === 0) {
+            rooms.delete(currentRoom);
         }
     });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log('Бэкенд успешно запущен!'));
+server.listen(PORT, () => console.log('Бэкенд запущен на порту ' + PORT));
