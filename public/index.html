@@ -5,8 +5,12 @@
     <title>Наш Голосовой Чат</title>
     <style>
         body { font-family: sans-serif; background: #2f3136; color: #fff; padding: 20px; text-align: center; }
-        .btn { background: #5865F2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px; font-weight: bold; }
-        .btn:hover { background: #4752C4; }
+        .btn { background: #5865F2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px; font-weight: bold; transition: transform 0.05s ease, background 0.15s ease; }
+        .btn:hover { filter: brightness(1.1); }
+        .btn:active { transform: scale(0.96); }
+        .btn:disabled,
+        .btn.disabled { cursor: not-allowed !important; opacity: 0.5 !important; filter: grayscale(0.4); }
+
         .btn-mute { background: #ED4245; }
         .btn-mute:hover { background: #C03B3E; }
         .btn-screen { background: #3ba55d; }
@@ -15,6 +19,7 @@
         .btn-camera:hover { background: #8e44ad; }
         .btn-deafen { background: #e67e22; }
         .btn-deafen:hover { background: #d35400; }
+
         #status { margin-top: 20px; color: #b9bbbe; font-weight: bold; }
         .controls { margin-top: 20px; display: none; }
 
@@ -56,7 +61,7 @@
         .admin-menu-item:hover { background: #ED4245; color: white; }
     </style>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="/peerjs.min.js"></script>
 </head>
 <body>
 
@@ -152,11 +157,11 @@ const audioElements = new Map(); // peerId -> audio element
 
 /* ================== PeerJS ================== */
 const myPeer = new Peer(undefined, {
-    host: location.hostname, // Используем ваш домен (например, mini-discord-voice.onrender.com)
-    port: location.port || (location.protocol === 'https:' ? 443 : 80), // Стандартный порт для HTTPS
-    path: '/peerjs', // Путь, который мы задали в server.js
-    secure: location.protocol === 'https:', // Важно: true для HTTPS, false для HTTP
-    debug: 1 // Включаем отладку, чтобы видеть больше деталей в консоли
+    host: location.hostname,
+    port: location.port || (location.protocol === 'https:' ? 443 : 80),
+    path: '/peerjs',
+    secure: location.protocol === 'https:',
+    debug: 1
 });
 
 myPeer.on('open', id => {
@@ -176,7 +181,6 @@ myPeer.on('call', call => {
     const streamType = meta.type || 'audio';
 
     if (streamType === 'screen' || streamType === 'camera') {
-        // Видеопоток от другого пользователя — отвечаем без своего потока
         try { call.answer(); } catch (e) { console.warn(e); }
 
         const key = call.peer + '-' + streamType;
@@ -192,7 +196,6 @@ myPeer.on('call', call => {
             videoCalls.delete(key);
         });
     } else {
-        // Аудио-вызов
         try { call.answer(localStream || undefined); } catch (e) { console.warn(e); }
 
         call.on('stream', remoteStream => {
@@ -247,11 +250,14 @@ document.getElementById('join-btn').addEventListener('click', async () => {
     socket.emit('join-room', ROOM_ID, myPeerId, myUsername, chosenPass);
 
     startAudioAnalyser(localStream);
+
+    // Первичная отрисовка кнопок
+    renderMuteButton();
+    renderDeafenButton();
 });
 
 /* ================== Socket.IO события ================== */
 
-// Новый пользователь — звоним ему со своим аудио
 socket.on('user-connected', (newPeerId, newUsername) => {
     peerToUser.set(newPeerId, newUsername);
     if (!localStream) return;
@@ -261,12 +267,10 @@ socket.on('user-connected', (newPeerId, newUsername) => {
     }
 });
 
-// Нам сообщили список уже присутствующих (для знания peerId)
 socket.on('room-state', (peers, adminName) => {
     peers.forEach(p => peerToUser.set(p.peerId, p.username));
 });
 
-// Запрос на звонки всем с новым потоком (экран/камера)
 socket.on('call-peers-with-stream', (streamType, peers) => {
     const stream = streamType === 'screen' ? screenStream : cameraStream;
     if (!stream) return;
@@ -283,12 +287,10 @@ socket.on('call-peers-with-stream', (streamType, peers) => {
     });
 });
 
-// Другой пользователь начал стримить — просто запоминаем его имя
 socket.on('video-stream-started', (peerId, username, streamType) => {
     peerToUser.set(peerId, username);
 });
 
-// Другой пользователь остановил стрим — удаляем видео
 socket.on('video-stream-stopped', (peerId, streamType) => {
     const key = peerId + '-' + streamType;
     removeVideoElement(key);
@@ -299,19 +301,16 @@ socket.on('video-stream-stopped', (peerId, streamType) => {
     }
 });
 
-// Админ подтверждён
 socket.on('admin-verified', () => {
     amIAdmin = true;
     statusDiv.textContent = "Вы вошли как Создатель канала 👑";
 });
 
-// Нас кикнули
 socket.on('you-are-kicked', (reason) => {
     alert("Вы были исключены: " + (reason || "без причины"));
     location.reload();
 });
 
-// Обновление списка пользователей
 socket.on('update-user-list', (users, adminName) => {
     userCountSpan.textContent = users.length;
     userListDiv.innerHTML = '';
@@ -337,7 +336,6 @@ socket.on('update-user-list', (users, adminName) => {
             item.appendChild(crown);
         }
 
-        // Контекстное меню для кика
         item.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             if (!amIAdmin || user === myUsername) return;
@@ -351,7 +349,6 @@ socket.on('update-user-list', (users, adminName) => {
     });
 });
 
-// Подсветка говорящего
 socket.on('user-speech-updated', (username, isSpeaking) => {
     const items = userListDiv.querySelectorAll('.user-item');
     items.forEach(item => {
@@ -361,7 +358,6 @@ socket.on('user-speech-updated', (username, isSpeaking) => {
     });
 });
 
-// Приём сообщений чата (без innerHTML — защита от XSS)
 socket.on('receive-chat-message', (author, text, isAdminMsg) => {
     const msgLine = document.createElement('div');
     msgLine.className = 'msg-line';
@@ -392,33 +388,62 @@ function updateMicTrack() {
     }
 }
 
-muteBtn.addEventListener('click', () => {
-    if (isDeafened) return;
-    isMuted = !isMuted;
-    updateMicTrack();
-    muteBtn.textContent = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
-    muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
-});
+// Отрисовка кнопки Mute в зависимости от режима
+function renderMuteButton() {
+    if (isDeafened) {
+        muteBtn.textContent = "🔇 Микрофон заблокирован";
+        muteBtn.style.background = "#4f545c";
+        muteBtn.disabled = true;
+    } else {
+        muteBtn.disabled = false;
+        muteBtn.textContent = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
+        muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
+    }
+}
 
-deafenBtn.addEventListener('click', () => {
-    isDeafened = !isDeafened;
-    updateMicTrack();
-
-    // Глушим / включаем звук всех входящих
-    audioElements.forEach(audio => { audio.muted = isDeafened; });
-
+// Отрисовка кнопки Deafen
+function renderDeafenButton() {
     if (isDeafened) {
         deafenBtn.textContent = "🎧 Включить звук";
         deafenBtn.style.background = "#3BA55D";
-        muteBtn.textContent = "🔊 Включить микрофон";
-        muteBtn.style.background = "#5865F2";
-        statusDiv.textContent = "Режим тишины (вы никого не слышите и вас не слышно)";
     } else {
         deafenBtn.textContent = "🎧 Выключить звук";
         deafenBtn.style.background = "#e67e22";
-        muteBtn.textContent = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
-        muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
-        statusDiv.textContent = "Вы подключены как: " + myUsername;
+    }
+}
+
+// --- Mute ---
+muteBtn.addEventListener('click', () => {
+    try {
+        if (isDeafened) return;
+        isMuted = !isMuted;
+        updateMicTrack();
+        renderMuteButton();
+
+        statusDiv.textContent = isMuted
+            ? "Микрофон выключен"
+            : "Вы подключены как: " + myUsername;
+    } catch (e) {
+        console.error('Ошибка в обработчике Mute:', e);
+    }
+});
+
+// --- Deafen ---
+deafenBtn.addEventListener('click', () => {
+    try {
+        isDeafened = !isDeafened;
+        updateMicTrack();
+
+        audioElements.forEach(audio => { audio.muted = isDeafened; });
+
+        renderMuteButton();
+        renderDeafenButton();
+
+        statusDiv.textContent = isDeafened
+            ? "Режим тишины (вы никого не слышите и вас не слышно)"
+            : (isMuted ? "Микрофон выключен" : "Вы подключены как: " + myUsername);
+    } catch (e) {
+        console.error('Ошибка в обработчике Deafen:', e);
     }
 });
 
@@ -438,10 +463,8 @@ screenBtn.addEventListener('click', async () => {
 
             addVideoElement(myPeerId + "-screen", screenStream, "Ваш экран", true);
 
-            // Сообщаем серверу — он вернёт список peerId
             socket.emit('start-video-stream', ROOM_ID, "screen");
 
-            // Если пользователь выключил шаринг средствами браузера
             screenStream.getVideoTracks()[0].addEventListener('ended', () => {
                 stopScreenShare();
             });
@@ -464,7 +487,6 @@ function stopScreenShare() {
 
     removeVideoElement(myPeerId + "-screen");
 
-    // Закрываем все исходящие вызовы с типом screen
     Array.from(videoCalls.keys()).forEach(key => {
         if (key.endsWith('-screen')) {
             const call = videoCalls.get(key);
@@ -527,7 +549,7 @@ function stopCameraShare() {
     socket.emit('stop-video-stream', ROOM_ID, "camera");
 }
 
-/* ================== Анализ звука (подсветка говорящего) ================== */
+/* ================== Анализ звука ================== */
 function startAudioAnalyser(stream) {
     try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -570,7 +592,7 @@ chatInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') sendMessage();
 });
 
-/* ================== Контекстное меню (кик) ================== */
+/* ================== Контекстное меню ================== */
 document.addEventListener('click', () => { ctxMenu.style.display = 'none'; });
 
 kickAction.addEventListener('click', (e) => {
