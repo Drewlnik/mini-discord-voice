@@ -17,18 +17,18 @@
         .btn-deafen:hover { background: #d35400; }
         #status { margin-top: 20px; color: #b9bbbe; font-weight: bold; }
         .controls { margin-top: 20px; display: none; }
-        
+
         .main-container { display: flex; max-width: 950px; margin: 20px auto; gap: 20px; justify-content: center; flex-wrap: wrap; }
         .online-box { background: #202225; border-radius: 8px; padding: 15px; width: 200px; text-align: left; box-shadow: 0 4px 10px rgba(0,0,0,0.3); height: 350px; display: flex; flex-direction: column; }
         .online-title { font-size: 14px; text-transform: uppercase; color: #8e9297; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #2f3136; padding-bottom: 5px; }
         .user-list-container { flex-grow: 1; overflow-y: auto; }
-        
+
         .user-item { display: flex; align-items: center; margin: 8px 0; color: #dcddde; font-size: 15px; transition: all 0.2s ease; position: relative; cursor: pointer; }
         .user-avatar { width: 12px; height: 12px; background: #4f545c; border-radius: 50%; margin-right: 10px; border: 2px solid transparent; transition: all 0.15s ease; }
-        
+
         .user-item.speaking .user-avatar { background: #3ba55d; border-color: #3ba55d; box-shadow: 0 0 8px #3ba55d; }
         .user-item.speaking { color: #fff; font-weight: bold; }
-        
+
         .user-item.admin-role { color: #ED4245 !important; font-weight: bold; }
         .user-item.admin-role .user-avatar { background: #ED4245 !important; }
         .crown { color: #FAA61A; margin-left: 5px; font-size: 13px; }
@@ -38,27 +38,25 @@
         .chat-input-container { display: flex; gap: 10px; }
         .chat-input { flex-grow: 1; background: #40444b; border: none; border-radius: 4px; padding: 10px; color: #fff; font-size: 14px; outline: none; }
         .chat-send-btn { background: #3ba55d; color: white; border: none; padding: 0 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .msg-line { margin-bottom: 8px; word-break: break-all; }
+        .msg-line { margin-bottom: 8px; word-break: break-word; }
         .msg-author { font-weight: bold; color: #ffffff; margin-right: 5px; }
         .msg-author.admin-text { color: #ED4245 !important; }
-        
+
         .video-box { background: #202225; border-radius: 8px; padding: 15px; width: 100%; max-width: 900px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; margin-top: 10px; }
         .video-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 10px; }
         .video-wrapper { background: #000; border-radius: 6px; overflow: hidden; position: relative; width: 280px; height: 210px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
         .video-wrapper video { width: 100%; height: 100%; object-fit: cover; }
         .video-label { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: #fff; }
-        
+
         .login-box { background: #202225; border-radius: 8px; padding: 25px; max-width: 400px; margin: 30px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: none; }
         .login-input { background: #40444b; border: none; border-radius: 4px; padding: 12px; color: #fff; font-size: 16px; outline: none; width: 85%; text-align: center; margin-bottom: 15px; }
-        
-        .admin-menu { position: absolute; background: #18191c; border-radius: 4px; padding: 6px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: none; z-index: 9999; }
+
+        .admin-menu { position: fixed; background: #18191c; border-radius: 4px; padding: 6px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: none; z-index: 9999; }
         .admin-menu-item { padding: 8px 20px; color: #ED4245; font-weight: bold; font-size: 14px; cursor: pointer; list-style: none; }
         .admin-menu-item:hover { background: #ED4245; color: white; }
     </style>
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t="undefined"!=typeof globalThis?globalThis:t||self).PeerJS={})}(this,(function(t){"use strict";Object.defineProperty(t,"__esModule",{value:!0});const e=new class{constructor(){this.config={}}};t.Peer=class{constructor(t,e){this.options=e||{},this.id=t,this._initialize()}_initialize(){setTimeout((()=>{this._open()}),0)}_open(){this.id||(this.id=Math.random().toString(36).substr(2,9)),setTimeout((()=>{this.emit("open",this.id)}),0)}on(t,e){this._events=this._events||{},this._events[t]=this._events[t]||[],this._events[t].push(e)}emit(t,...e){if(this._events&&this._events[t])for(const n of this._events[t])n(...e)}call(t,e){const n={answer:(t)=>{setTimeout((()=>{n.emit("stream",t)}),0)},on:(t,e)=>{n._events=n._events||{},n._events[t]=n._events[t]||[],n._events[t].push(e)},emit:(t,...e)=>{if(n._events&&n._events[t])for(const o of n._events[t])o(...e)}};return setTimeout((()=>{this.emit("call",n)}),500),n}};window.Peer=t.Peer}));
-    </script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 <body>
 
@@ -77,7 +75,7 @@
         <br>
         <button class="btn" id="join-btn">Войти в канал</button>
     </div>
-    
+
     <div class="main-container" id="app-container" style="display: none;">
         <div class="online-box">
             <div class="online-title">🟢 В сети: <span id="user-count">0</span></div>
@@ -98,7 +96,7 @@
             <div class="video-grid" id="video-grid"></div>
         </div>
     </div>
-    
+
     <div class="controls" id="controls-block">
         <button class="btn btn-mute" id="mute-btn">🔇 Выключить микрофон</button>
         <button class="btn btn-deafen" id="deafen-btn">🎧 Выключить звук</button>
@@ -108,257 +106,530 @@
 
     <div id="status">Статус: Инициализация связи...</div>
 
-    <script>
-        const socket = io('/');
-        const ROOM_ID = "main-friends-room"; 
-        const statusDiv = document.getElementById('status');
-        const muteBtn = document.getElementById('mute-btn');
-        const deafenBtn = document.getElementById('deafen-btn');
-        const screenBtn = document.getElementById('screen-btn');
-        const cameraBtn = document.getElementById('camera-btn');
-        const controlsBlock = document.getElementById('controls-block');
-        const userCountSpan = document.getElementById('user-count');
-        const userListDiv = document.getElementById('user-list');
-        
-        const chatMessages = document.getElementById('chat-messages');
-        const chatInput = document.getElementById('chat-input');
-        const chatSendBtn = document.getElementById('chat-send-btn');
-        
-        const videoContainer = document.getElementById('video-container');
-        const videoGrid = document.getElementById('video-grid');
+<script>
+/* ================== Ссылки на DOM ================== */
+const statusDiv       = document.getElementById('status');
+const muteBtn         = document.getElementById('mute-btn');
+const deafenBtn       = document.getElementById('deafen-btn');
+const screenBtn       = document.getElementById('screen-btn');
+const cameraBtn       = document.getElementById('camera-btn');
+const controlsBlock   = document.getElementById('controls-block');
+const userCountSpan   = document.getElementById('user-count');
+const userListDiv     = document.getElementById('user-list');
+const chatMessages    = document.getElementById('chat-messages');
+const chatInput       = document.getElementById('chat-input');
+const chatSendBtn     = document.getElementById('chat-send-btn');
+const videoContainer  = document.getElementById('video-container');
+const videoGrid       = document.getElementById('video-grid');
+const loginContainer  = document.getElementById('login-container');
+const appContainer    = document.getElementById('app-container');
+const usernameInput   = document.getElementById('username-input');
+const passwordInput   = document.getElementById('password-input');
+const ctxMenu         = document.getElementById('ctx-menu');
+const kickAction      = document.getElementById('kick-action');
 
-        const loginContainer = document.getElementById('login-container');
-        const appContainer = document.getElementById('app-container');
-        const usernameInput = document.getElementById('username-input');
-        const passwordInput = document.getElementById('password-input');
-        const ctxMenu = document.getElementById('ctx-menu');
-        const kickAction = document.getElementById('kick-action');
-        
-        let localStream;
-        let screenStream;
-        let cameraStream;
-        let isMuted = false;
-        let isDeafened = false;
-        let isSharingScreen = false;
-        let isSharingCamera = false;
-        let myUserId = null;
-        let myUsername = "";
-        let amIAdmin = false;
-        let selectedUserToKick = null;
-        let audioLevelInterval = null;
+/* ================== Состояние ================== */
+const ROOM_ID = "main-friends-room";
+const socket  = io('/');
 
-        const myPeer = new Peer();
-        myPeer.on('open', userId => {
-            myUserId = userId;
-            statusDiv.innerText = "Статус: Подключено к сети! Введите данные.";
-            loginContainer.style.display = 'block';
+let localStream       = null;
+let screenStream      = null;
+let cameraStream      = null;
+let isMuted           = false;
+let isDeafened        = false;
+let isSharingScreen   = false;
+let isSharingCamera   = false;
+let myPeerId          = null;
+let myUsername        = "";
+let amIAdmin          = false;
+let selectedUserToKick = null;
+let audioLevelInterval = null;
+
+const peerToUser    = new Map(); // peerId -> username
+const audioCalls    = new Map(); // peerId -> call
+const videoCalls    = new Map(); // "peerId-type" -> call
+const audioElements = new Map(); // peerId -> audio element
+
+/* ================== PeerJS ================== */
+const myPeer = new Peer();
+
+myPeer.on('open', id => {
+    myPeerId = id;
+    statusDiv.textContent = "Статус: Подключено к сети. Введите имя.";
+    loginContainer.style.display = 'block';
+});
+
+myPeer.on('error', err => {
+    console.error('PeerJS error:', err);
+    statusDiv.textContent = "Ошибка PeerJS: " + err.type;
+});
+
+// Универсальный приём входящих вызовов
+myPeer.on('call', call => {
+    const meta = call.metadata || {};
+    const streamType = meta.type || 'audio';
+
+    if (streamType === 'screen' || streamType === 'camera') {
+        // Видеопоток от другого пользователя — отвечаем без своего потока
+        try { call.answer(); } catch (e) { console.warn(e); }
+
+        const key = call.peer + '-' + streamType;
+        const prefix = streamType === 'screen' ? '📺 Экран: ' : '📷 Камера: ';
+        const authorName = meta.username || peerToUser.get(call.peer) || '???';
+
+        call.on('stream', remoteStream => {
+            addVideoElement(key, remoteStream, prefix + authorName, false);
+            videoCalls.set(key, call);
         });
+        call.on('close', () => {
+            removeVideoElement(key);
+            videoCalls.delete(key);
+        });
+    } else {
+        // Аудио-вызов
+        try { call.answer(localStream || undefined); } catch (e) { console.warn(e); }
 
-        document.getElementById('join-btn').addEventListener('click', () => {
-            const chosenName = usernameInput.value.trim();
-            const chosenPass = passwordInput.value.trim();
-
-            if (chosenName === "") {
-                alert("Пожалуйста, введите ваше имя перед входом!");
-                return;
+        call.on('stream', remoteStream => {
+            let audio = audioElements.get(call.peer);
+            if (!audio) {
+                audio = document.createElement('audio');
+                audio.autoplay = true;
+                audio.muted = isDeafened;
+                document.body.appendChild(audio);
+                audioElements.set(call.peer, audio);
             }
-            
-            myUsername = chosenName;
+            audio.srcObject = remoteStream;
+            audio.play().catch(() => {});
+            audioCalls.set(call.peer, call);
+        });
+        call.on('close', () => {
+            const audio = audioElements.get(call.peer);
+            if (audio) { audio.remove(); audioElements.delete(call.peer); }
+            audioCalls.delete(call.peer);
+        });
+    }
+});
 
-            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                localStream = stream;
-                statusDiv.innerText = "Вы подключены как: " + myUsername;
-                
-                loginContainer.style.display = 'none';
-                appContainer.style.display = 'flex';
-                controlsBlock.style.display = 'block';
+/* ================== Вход в комнату ================== */
+document.getElementById('join-btn').addEventListener('click', async () => {
+    const chosenName = usernameInput.value.trim();
+    const chosenPass = passwordInput.value.trim();
 
-                socket.emit('join-room', ROOM_ID, myUserId, myUsername, chosenPass);
+    if (!chosenName) {
+        alert("Пожалуйста, введите ваше имя!");
+        return;
+    }
+    if (!myPeerId) {
+        alert("Подождите, идёт подключение к сети...");
+        return;
+    }
 
-                startAudioAnalyser(stream);
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+        statusDiv.textContent = "Ошибка микрофона: " + err.message;
+        return;
+    }
 
-                                // Единая функция для железного обновления дорожки микрофона
-                function updateMicTrack() {
-                    // Микрофон должен работать ТОЛЬКО если выключен и Mute, и Deafen одновременно
-                    const shouldBeEnabled = !isMuted && !isDeafened;
-                    if (localStream) {
-                        localStream.getAudioTracks().forEach(track => {
-                            track.enabled = shouldBeEnabled;
-                        });
-                    }
-                    // Передаем статус речи на сервер: если микрофон выключен — принудительно гасим подсветку
-                    if (!shouldBeEnabled) {
-                        socket.emit('speech-state-change', ROOM_ID, myUsername, false);
-                    }
-                }
+    myUsername = chosenName;
+    statusDiv.textContent = "Вы подключены как: " + myUsername;
 
-                // Логика кнопки "Выключить микрофон" (Mute)
-                muteBtn.addEventListener('click', () => {
-                    if (isDeafened) return; // Если включен Deafen, кнопку микрофона блокируем
-                    
-                    isMuted = !isMuted;
-                    updateMicTrack(); // Синхронно обновляем железный трек
-                    
-                    muteBtn.innerText = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
-                    muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
-                });
+    loginContainer.style.display = 'none';
+    appContainer.style.display = 'flex';
+    controlsBlock.style.display = 'block';
 
-                // Логика кнопки "Выключить звук" (Deafen)
-                deafenBtn.addEventListener('click', () => {
-                    isDeafened = !isDeafened;
-                    
-                    updateMicTrack(); // Синхронно глушим или включаем свой микрофон
-                    
-                    // Глушим или включаем звук всех входящих друзей в программе
-                    const allAudios = document.querySelectorAll('audio');
-                    allAudios.forEach(audio => { 
-                        audio.muted = isDeafened; 
-                    });
+    socket.emit('join-room', ROOM_ID, myPeerId, myUsername, chosenPass);
 
-                    // Меняем дизайн кнопок в зависимости от режима
-                    if (isDeafened) {
-                        deafenBtn.innerText = "🎧 Включить звук";
-                        deafenBtn.style.background = "#3BA55D"; // Зеленый
-                        
-                        // Визуально показываем, что микрофон тоже отключился из-за Deafen
-                        muteBtn.innerText = "🔊 Включить микрофон";
-                        muteBtn.style.background = "#5865F2"; // Синий (заблокирован)
-                        statusDiv.innerText = "Режим тишины (Вы никого не слышите, вас тоже не слышно)";
-                    } else {
-                        deafenBtn.innerText = "🎧 Выключить звук";
-                        deafenBtn.style.background = "#e67e22"; // Оранжевый
-                        
-                        // Возвращаем кнопку микрофона в ее честный статус, который был у переменной isMuted
-                        muteBtn.innerText = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
-                        muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
-                        statusDiv.innerText = "Вы подключены как: " + myUsername;
-                    }
-                });
+    startAudioAnalyser(localStream);
+});
 
-                screenBtn.addEventListener('click', () => {
-                    if (!isSharingScreen) {
-                        if (isSharingCamera) stopCameraShare();
-                        navigator.mediaDevices.getDisplayMedia({ video: true }).then(stream => {
-                            screenStream = stream;
-                            isSharingScreen = true;
-                            screenBtn.innerText = "🛑 Выключить экран";
-                            screenBtn.style.background = "#ED4245";
-                            addVideoElement(myUserId + "-screen", screenStream, "Ваш экран");
-                            socket.emit('start-video-stream', ROOM_ID, myUserId, myUsername, "screen");
-                            screenStream.getVideoTracks()[0].addEventListener('ended', () => { stopScreenShare(); });
-                        }).catch(err => console.log(err));
-                    } else { stopScreenShare(); }
-                });
+/* ================== Socket.IO события ================== */
 
-                cameraBtn.addEventListener('click', () => {
-                    if (!isSharingCamera) {
-                        if (isSharingScreen) stopScreenShare();
-                        navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(stream => {
-                            cameraStream = stream;
-                            isSharingCamera = true;
-                            cameraBtn.innerText = "🛑 Выключить камеру";
-                            cameraBtn.style.background = "#ED4245";
-                            addVideoElement(myUserId + "-camera", cameraStream, "Вы (Камера)");
-                            socket.emit('start-video-stream', ROOM_ID, myUserId, myUsername, "camera");
-                        }).catch(err => alert("Камера не найдена"));
-                    } else { stopCameraShare(); }
-                });
+// Новый пользователь — звоним ему со своим аудио
+socket.on('user-connected', (newPeerId, newUsername) => {
+    peerToUser.set(newPeerId, newUsername);
+    if (!localStream) return;
+    const call = myPeer.call(newPeerId, localStream);
+    if (call) {
+        audioCalls.set(newPeerId, call);
+    }
+});
 
-                myPeer.on('call', call => {
-                    call.answer(localStream); 
-                    call.on('stream', userStream => {
-                        const callId = call.connectionId;
-                        if (userStream.getVideoTracks().length > 0) {
-                            addVideoElement(callId, userStream, "Стрим");
-                        } else {
-                            const audio = document.createElement('audio');
-                            if (isDeafened) audio.muted = true; 
-                            addAudioStream(audio, userStream);
-                        }
-                    });
-                });
+// Нам сообщили список уже присутствующих (для знания peerId)
+socket.on('room-state', (peers, adminName) => {
+    peers.forEach(p => peerToUser.set(p.peerId, p.username));
+});
 
-                socket.on('user-connected', newUserId => { myPeer.call(newUserId, localStream); });
-                
-                socket.on('video-stream-started', (userId, username, streamType) => {
-                    const labelText = streamType === "screen" ? "Экран: " + username : "Камера: " + username;
-                    const call = myPeer.call(userId, localStream);
-                    call.on('stream', remoteVideoStream => { addVideoElement(userId + "-" + streamType, remoteVideoStream, labelText); });
-                });
-                socket.on('video-stream-stopped', (userId, streamType) => { removeVideoElement(userId + "-" + streamType); });
-            }).catch(err => { statusDiv.innerText = "Ошибка микрофона: " + err.message; });
+// Запрос на звонки всем с новым потоком (экран/камера)
+socket.on('call-peers-with-stream', (streamType, peers) => {
+    const stream = streamType === 'screen' ? screenStream : cameraStream;
+    if (!stream) return;
+
+    peers.forEach(p => {
+        const call = myPeer.call(p.peerId, stream, {
+            metadata: { type: streamType, username: myUsername }
+        });
+        if (call) {
+            const key = p.peerId + '-' + streamType;
+            videoCalls.set(key, call);
+            peerToUser.set(p.peerId, p.username);
+        }
+    });
+});
+
+// Другой пользователь начал стримить — просто запоминаем его имя
+socket.on('video-stream-started', (peerId, username, streamType) => {
+    peerToUser.set(peerId, username);
+});
+
+// Другой пользователь остановил стрим — удаляем видео
+socket.on('video-stream-stopped', (peerId, streamType) => {
+    const key = peerId + '-' + streamType;
+    removeVideoElement(key);
+    const call = videoCalls.get(key);
+    if (call) {
+        try { call.close(); } catch (e) {}
+        videoCalls.delete(key);
+    }
+});
+
+// Админ подтверждён
+socket.on('admin-verified', () => {
+    amIAdmin = true;
+    statusDiv.textContent = "Вы вошли как Создатель канала 👑";
+});
+
+// Нас кикнули
+socket.on('you-are-kicked', (reason) => {
+    alert("Вы были исключены: " + (reason || "без причины"));
+    location.reload();
+});
+
+// Обновление списка пользователей
+socket.on('update-user-list', (users, adminName) => {
+    userCountSpan.textContent = users.length;
+    userListDiv.innerHTML = '';
+
+    users.forEach(user => {
+        const item = document.createElement('div');
+        item.className = 'user-item';
+        item.setAttribute('data-username', user);
+
+        const avatar = document.createElement('div');
+        avatar.className = 'user-avatar';
+        item.appendChild(avatar);
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = user;
+        item.appendChild(nameSpan);
+
+        if (user === adminName) {
+            item.classList.add('admin-role');
+            const crown = document.createElement('span');
+            crown.className = 'crown';
+            crown.textContent = '👑';
+            item.appendChild(crown);
+        }
+
+        // Контекстное меню для кика
+        item.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (!amIAdmin || user === myUsername) return;
+            selectedUserToKick = user;
+            ctxMenu.style.display = 'block';
+            ctxMenu.style.left = e.pageX + 'px';
+            ctxMenu.style.top  = e.pageY + 'px';
         });
 
-        socket.on('admin-verified', () => { amIAdmin = true; statusDiv.innerText = "Вы вошли как Создатель канала 👑"; });
-        socket.on('you-are-kicked', () => { alert("Вы были кикнуты администратором!"); location.reload(); });
+        userListDiv.appendChild(item);
+    });
+});
 
-        function addVideoElement(id, stream, labelText) {
-            videoContainer.style.display = 'block';
-            let wrapper = document.getElementById(id);
-            if (!wrapper) {
-                wrapper = document.createElement('div'); wrapper.className = 'video-wrapper'; wrapper.id = id;
-                const video = document.createElement('video'); video.autoplay = true; video.playsinline = true; video.srcObject = stream;
-                const label = document.createElement('div'); label.className = 'video-label'; label.innerText = labelText;
-                wrapper.appendChild(video); wrapper.appendChild(label); videoGrid.appendChild(wrapper);
-            }
+// Подсветка говорящего
+socket.on('user-speech-updated', (username, isSpeaking) => {
+    const items = userListDiv.querySelectorAll('.user-item');
+    items.forEach(item => {
+        if (item.getAttribute('data-username') === username) {
+            item.classList.toggle('speaking', !!isSpeaking);
         }
-        function removeVideoElement(id) {
-            const wrapper = document.getElementById(id); if (wrapper) wrapper.remove();
-            if (videoGrid.children.length === 0) videoContainer.style.display = 'none';
-        }
-        function stopScreenShare() {
-            if (screenStream) screenStream.getTracks().forEach(track => track.stop());
-            isSharingScreen = false; screenBtn.innerText = "📺 Включить экран"; screenBtn.style.background = "#3ba55d";
-            removeVideoElement(myUserId + "-screen"); socket.emit('stop-video-stream', ROOM_ID, "screen");
-        }
-        function stopCameraShare() {
-            if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
-            isSharingCamera = false; cameraBtn.innerText = "📷 Включить камеру"; cameraBtn.style.background = "#9b59b6";
-            removeVideoElement(myUserId + "-camera"); socket.emit('stop-video-stream', ROOM_ID, "camera");
-        }
-        function startAudioAnalyser(stream) {
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const analyser = audioContext.createAnalyser(); const source = audioContext.createMediaStreamSource(stream);
-                source.connect(analyser); analyser.fftSize = 512; const bufferLength = analyser.frequencyBinCount; const dataArray = new Uint8Array(bufferLength);
-                let wasSpeaking = false;
-                audioLevelInterval = setInterval(() => {
-                    if (isMuted || isDeafened) return;
-                    analyser.getByteFrequencyData(dataArray); let sum = 0; for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
-                    let average = sum / bufferLength; let isSpeaking = average > 12;
-                    if (isSpeaking !== wasSpeaking) { wasSpeaking = isSpeaking; socket.emit('speech-state-change', ROOM_ID, myUsername, isSpeaking); }
-                }, 150);
-            } catch (e) { console.log(e); }
-        }
-        function sendMessage() { const text = chatInput.value.trim(); if (text !== "") { socket.emit('send-chat-message', ROOM_ID, myUsername, text); chatInput.value = ""; } }
-        chatSendBtn.addEventListener('click', sendMessage); chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
-        socket.on('receive-chat-message', (author, text, isAdminMsg) => {
-            const msgLine = document.createElement('div'); msgLine.className = 'msg-line'; const adminClass = isAdminMsg ? ' admin-text' : '';
-            msgLine.innerHTML = '<span class="msg-author' + adminClass + '">' + author + ':</span><span>' + text + '</span>';
-            chatMessages.appendChild(msgLine); chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
-        socket.on('user-speech-updated', (username, isSpeaking) => {
-            const userItems = document.querySelectorAll('.user-item');
-            userItems.forEach(item => { if (item.getAttribute('data-username') === username) { if (isSpeaking) item.classList.add('speaking'); else item.classList.remove('speaking'); } });
-        });
+    });
+});
 
-        socket.on('update-user-list', (users, adminName) => {
-            userCountSpan.innerText = users.length; userListDiv.innerHTML = ''; 
-            users.forEach(user => {
-                const item = document.createElement('div'); item.className = 'user-item'; item.setAttribute('data-username', user);
-                if (user === adminName) { item.className += ' admin-role'; item.innerHTML = '<div class="user-avatar"></div><span>' + user + '</span><span class="crown">👑</span>'; }
-                else { item.innerHTML = '<div class="user-avatar"></div><span>' + user + '</span>'; }
-                item.addEventListener('contextmenu', (e) => { e.preventDefault(); if (!amIAdmin || user === adminName) return; selectedUserToKick = user; ctxMenu.style.display = 'block'; ctxMenu.style.left = e.pageX + 'px'; ctxMenu.style.top = e.pageY + 'px'; });
-                userListDiv.appendChild(item);
+// Приём сообщений чата (без innerHTML — защита от XSS)
+socket.on('receive-chat-message', (author, text, isAdminMsg) => {
+    const msgLine = document.createElement('div');
+    msgLine.className = 'msg-line';
+
+    const authorSpan = document.createElement('span');
+    authorSpan.className = 'msg-author' + (isAdminMsg ? ' admin-text' : '');
+    authorSpan.textContent = author + ':';
+
+    const textSpan = document.createElement('span');
+    textSpan.textContent = ' ' + text;
+
+    msgLine.appendChild(authorSpan);
+    msgLine.appendChild(textSpan);
+    chatMessages.appendChild(msgLine);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+});
+
+/* ================== Управление микрофоном / звуком ================== */
+function updateMicTrack() {
+    const shouldBeEnabled = !isMuted && !isDeafened;
+    if (localStream) {
+        localStream.getAudioTracks().forEach(track => {
+            track.enabled = shouldBeEnabled;
+        });
+    }
+    if (!shouldBeEnabled) {
+        socket.emit('speech-state-change', ROOM_ID, myUsername, false);
+    }
+}
+
+muteBtn.addEventListener('click', () => {
+    if (isDeafened) return;
+    isMuted = !isMuted;
+    updateMicTrack();
+    muteBtn.textContent = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
+    muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
+});
+
+deafenBtn.addEventListener('click', () => {
+    isDeafened = !isDeafened;
+    updateMicTrack();
+
+    // Глушим / включаем звук всех входящих
+    audioElements.forEach(audio => { audio.muted = isDeafened; });
+
+    if (isDeafened) {
+        deafenBtn.textContent = "🎧 Включить звук";
+        deafenBtn.style.background = "#3BA55D";
+        muteBtn.textContent = "🔊 Включить микрофон";
+        muteBtn.style.background = "#5865F2";
+        statusDiv.textContent = "Режим тишины (вы никого не слышите и вас не слышно)";
+    } else {
+        deafenBtn.textContent = "🎧 Выключить звук";
+        deafenBtn.style.background = "#e67e22";
+        muteBtn.textContent = isMuted ? "🔊 Включить микрофон" : "🔇 Выключить микрофон";
+        muteBtn.style.background = isMuted ? "#3BA55D" : "#ED4245";
+        statusDiv.textContent = "Вы подключены как: " + myUsername;
+    }
+});
+
+/* ================== Трансляция экрана ================== */
+screenBtn.addEventListener('click', async () => {
+    if (!isSharingScreen) {
+        if (isSharingCamera) stopCameraShare();
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: false
             });
-        });
+            screenStream = stream;
+            isSharingScreen = true;
+            screenBtn.textContent = "🛑 Выключить экран";
+            screenBtn.style.background = "#ED4245";
 
-        document.addEventListener('click', () => { ctxMenu.style.display = 'none'; });
+            addVideoElement(myPeerId + "-screen", screenStream, "Ваш экран", true);
 
-        kickAction.addEventListener('click', () => { if (selectedUserToKick) { socket.emit('kick-user-request', ROOM_ID, selectedUserToKick); } });
+            // Сообщаем серверу — он вернёт список peerId
+            socket.emit('start-video-stream', ROOM_ID, "screen");
 
-        function addAudioStream(audio, stream) { audio.srcObject = stream; audio.addEventListener('loadedmetadata', () => { audio.play(); }); document.body.append(audio); }
-    </script>
+            // Если пользователь выключил шаринг средствами браузера
+            screenStream.getVideoTracks()[0].addEventListener('ended', () => {
+                stopScreenShare();
+            });
+        } catch (err) {
+            console.warn(err);
+        }
+    } else {
+        stopScreenShare();
+    }
+});
+
+function stopScreenShare() {
+    if (screenStream) {
+        screenStream.getTracks().forEach(t => t.stop());
+        screenStream = null;
+    }
+    isSharingScreen = false;
+    screenBtn.textContent = "📺 Включить экран";
+    screenBtn.style.background = "#3ba55d";
+
+    removeVideoElement(myPeerId + "-screen");
+
+    // Закрываем все исходящие вызовы с типом screen
+    Array.from(videoCalls.keys()).forEach(key => {
+        if (key.endsWith('-screen')) {
+            const call = videoCalls.get(key);
+            try { call.close(); } catch (e) {}
+            videoCalls.delete(key);
+        }
+    });
+
+    socket.emit('stop-video-stream', ROOM_ID, "screen");
+}
+
+/* ================== Трансляция камеры ================== */
+cameraBtn.addEventListener('click', async () => {
+    if (!isSharingCamera) {
+        if (isSharingScreen) stopScreenShare();
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: false
+            });
+            cameraStream = stream;
+            isSharingCamera = true;
+            cameraBtn.textContent = "🛑 Выключить камеру";
+            cameraBtn.style.background = "#ED4245";
+
+            addVideoElement(myPeerId + "-camera", cameraStream, "Вы (Камера)", true);
+
+            socket.emit('start-video-stream', ROOM_ID, "camera");
+
+            cameraStream.getVideoTracks()[0].addEventListener('ended', () => {
+                stopCameraShare();
+            });
+        } catch (err) {
+            alert("Камера не найдена или доступ запрещён");
+        }
+    } else {
+        stopCameraShare();
+    }
+});
+
+function stopCameraShare() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+    }
+    isSharingCamera = false;
+    cameraBtn.textContent = "📷 Включить камеру";
+    cameraBtn.style.background = "#9b59b6";
+
+    removeVideoElement(myPeerId + "-camera");
+
+    Array.from(videoCalls.keys()).forEach(key => {
+        if (key.endsWith('-camera')) {
+            const call = videoCalls.get(key);
+            try { call.close(); } catch (e) {}
+            videoCalls.delete(key);
+        }
+    });
+
+    socket.emit('stop-video-stream', ROOM_ID, "camera");
+}
+
+/* ================== Анализ звука (подсветка говорящего) ================== */
+function startAudioAnalyser(stream) {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const audioContext = new AudioCtx();
+        const analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+        analyser.fftSize = 512;
+
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        let wasSpeaking = false;
+        audioLevelInterval = setInterval(() => {
+            if (isMuted || isDeafened || !localStream) return;
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
+            const average = sum / bufferLength;
+            const isSpeaking = average > 12;
+            if (isSpeaking !== wasSpeaking) {
+                wasSpeaking = isSpeaking;
+                socket.emit('speech-state-change', ROOM_ID, myUsername, isSpeaking);
+            }
+        }, 150);
+    } catch (e) {
+        console.warn('AudioContext error:', e);
+    }
+}
+
+/* ================== Чат ================== */
+function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    socket.emit('send-chat-message', ROOM_ID, myUsername, text);
+    chatInput.value = "";
+}
+chatSendBtn.addEventListener('click', sendMessage);
+chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') sendMessage();
+});
+
+/* ================== Контекстное меню (кик) ================== */
+document.addEventListener('click', () => { ctxMenu.style.display = 'none'; });
+
+kickAction.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (selectedUserToKick) {
+        socket.emit('kick-user-request', ROOM_ID, selectedUserToKick);
+        selectedUserToKick = null;
+        ctxMenu.style.display = 'none';
+    }
+});
+
+/* ================== Помощники для видео ================== */
+function addVideoElement(id, stream, labelText, muted = false) {
+    videoContainer.style.display = 'block';
+    let wrapper = document.getElementById(id);
+
+    if (!wrapper) {
+        wrapper = document.createElement('div');
+        wrapper.className = 'video-wrapper';
+        wrapper.id = id;
+
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.playsInline = true;
+        video.muted = muted;
+        video.srcObject = stream;
+
+        const label = document.createElement('div');
+        label.className = 'video-label';
+        label.textContent = labelText;
+
+        wrapper.appendChild(video);
+        wrapper.appendChild(label);
+        videoGrid.appendChild(wrapper);
+    } else {
+        const video = wrapper.querySelector('video');
+        if (video) video.srcObject = stream;
+    }
+}
+
+function removeVideoElement(id) {
+    const wrapper = document.getElementById(id);
+    if (wrapper) {
+        const video = wrapper.querySelector('video');
+        if (video) {
+            video.pause();
+            video.srcObject = null;
+        }
+        wrapper.remove();
+    }
+    if (videoGrid.children.length === 0) {
+        videoContainer.style.display = 'none';
+    }
+}
+
+/* ================== Очистка при выходе ================== */
+window.addEventListener('beforeunload', () => {
+    if (audioLevelInterval) clearInterval(audioLevelInterval);
+    try {
+        if (screenStream) screenStream.getTracks().forEach(t => t.stop());
+        if (cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+        if (localStream) localStream.getTracks().forEach(t => t.stop());
+    } catch (e) {}
+    try { myPeer.destroy(); } catch (e) {}
+});
+</script>
 </body>
 </html>
-
