@@ -80,7 +80,6 @@ io.on('connection', (socket) => {
         });
         socket.emit('room-state', peers, room.admin);
 
-        // Обновляем список у всех
         io.to(roomId).emit('update-user-list', getUserList(room), room.admin);
     });
 
